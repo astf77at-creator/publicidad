@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flyer publicitario — Descarga nuestra App</title>
+<style>
+  :root{
+    --azul:#1e3a8a;
+    --azul-claro:#3b82f6;
+    --acento:#f59e0b;
+    --oscuro:#0f172a;
+    --gris:#475569;
+    --claro:#f1f5f9;
+    --blanco:#ffffff;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:#e2e8f0;
+    display:flex;
+    justify-content:center;
+    padding:24px;
+    color:var(--oscuro);
+  }
+
+  /* Tamaño A4 para impresión */
+  .flyer{
+    width:210mm;
+    min-height:297mm;
+    background:var(--blanco);
+    box-shadow:0 12px 40px rgba(0,0,0,.18);
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ---------- CABECERA ---------- */
+  .hero{
+    background:linear-gradient(135deg,var(--azul) 0%,var(--azul-claro) 100%);
+    color:var(--blanco);
+    padding:48px 48px 56px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute;
+    right:-80px;top:-80px;
+    width:280px;height:280px;
+    background:rgba(255,255,255,.08);
+    border-radius:50%;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    right:60px;bottom:-120px;
+    width:200px;height:200px;
+    background:rgba(245,158,11,.18);
+    border-radius:50%;
+  }
+  .marca{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    letter-spacing:.5px;
+    font-size:18px;
+    margin-bottom:36px;
+  }
+  .marca .logo{
+    width:38px;height:38px;
+    background:var(--acento);
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+  }
+  .hero h1{
+    font-size:52px;
+    line-height:1.05;
+    font-weight:800;
+    margin-bottom:18px;
+    max-width:520px;
+  }
+  .hero h1 span{color:var(--acento);}
+  .hero p.lead{
+    font-size:20px;
+    opacity:.92;
+    max-width:480px;
+    line-height:1.5;
+  }
+
+  /* ---------- BENEFICIOS ---------- */
+  .beneficios{
+    padding:44px 48px 20px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px 28px;
+  }
+  .seccion-titulo{
+    grid-column:1 / -1;
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:var(--azul-claro);
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .beneficio{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+  }
+  .beneficio .ic{
+    flex-shrink:0;
+    width:48px;height:48px;
+    border-radius:12px;
+    background:var(--claro);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;
+  }
+  .beneficio h3{
+    font-size:18px;
+    margin-bottom:4px;
+    color:var(--oscuro);
+  }
+  .beneficio p{
+    font-size:14px;
+    color:var(--gris);
+    line-height:1.45;
+  }
+
+  /* ---------- CTA ---------- */
+  .cta{
+    margin-top:auto;
+    background:var(--oscuro);
+    color:var(--blanco);
+    padding:40px 48px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:32px;
+  }
+  .cta-texto h2{
+    font-size:28px;
+    margin-bottom:10px;
+    line-height:1.15;
+  }
+  .cta-texto p{
+    color:#cbd5e1;
+    font-size:15px;
+    margin-bottom:18px;
+  }
+  .stores{display:flex;gap:12px;flex-wrap:wrap;}
+  .store-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--blanco);
+    color:var(--oscuro);
+    padding:10px 18px;
+    border-radius:10px;
+    font-weight:600;
+    font-size:14px;
+  }
+  .store-btn .em{font-size:22px;}
+  .store-btn small{display:block;font-size:10px;font-weight:400;opacity:.7;}
+
+  .qr{
+    flex-shrink:0;
+    text-align:center;
+  }
+  .qr .caja{
+    width:130px;height:130px;
+    background:var(--blanco);
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:8px;
+  }
+  /* QR sintético solo decorativo — reemplazar por el QR real */
+  .qr .caja svg{width:100%;height:100%;}
+  .qr span{font-size:12px;color:#cbd5e1;}
+
+  /* ---------- PIE ---------- */
+  .pie{
+    background:var(--azul);
+    color:var(--blanco);
+    padding:14px 48px;
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    opacity:.95;
+  }
+
+  @media print{
+    body{background:none;padding:0;}
+    .flyer{box-shadow:none;width:100%;min-height:100vh;}
+  }
+</style>
+</head>
+<body>
+  <div class="flyer">
+
+    <!-- CABECERA -->
+    <header class="hero">
+      <div class="marca">
+        <span class="logo">📱</span>
+        NOMBRE&nbsp;DE&nbsp;TU&nbsp;APP
+      </div>
+      <h1>Todo lo que necesitas, <span>en una sola app</span></h1>
+      <p class="lead">Descárgala hoy y gestiona tus pedidos, citas y servicios desde tu móvil, estés donde estés.</p>
+    </header>
+
+    <!-- BENEFICIOS -->
+    <section class="beneficios">
+      <div class="seccion-titulo">¿Por qué usar nuestra app?</div>
+
+      <div class="beneficio">
+        <div class="ic">⚡</div>
+        <div>
+          <h3>Rápida y sencilla</h3>
+          <p>Realiza tus gestiones en segundos, sin colas ni esperas.</p>
+        </div>
+      </div>
+
+      <div class="beneficio">
+        <div class="ic">🔔</div>
+        <div>
+          <h3>Notificaciones al instante</h3>
+          <p>Recibe avisos de promociones, pedidos y novedades en tiempo real.</p>
+        </div>
+      </div>
+
+      <div class="beneficio">
+        <div class="ic">🎁</div>
+        <div>
+          <h3>Ofertas exclusivas</h3>
+          <p>Accede a descuentos y promociones solo para usuarios de la app.</p>
+        </div>
+      </div>
+
+      <div class="beneficio">
+        <div class="ic">🔒</div>
+        <div>
+          <h3>Seguro y confiable</h3>
+          <p>Tus datos protegidos con los más altos estándares de seguridad.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LLAMADA A LA ACCIÓN -->
+    <section class="cta">
+      <div class="cta-texto">
+        <h2>¡Descárgala gratis ahora!</h2>
+        <p>Disponible para iOS y Android.</p>
+        <div class="stores">
+          <span class="store-btn"><span class="em"></span><span><small>Descárgalo en</small>App&nbsp;Store</span></span>
+          <span class="store-btn"><span class="em">▶</span><span><small>Disponible en</small>Google&nbsp;Play</span></span>
+        </div>
+      </div>
+
+      <div class="qr">
+        <div class="caja">
+          <!-- QR decorativo: sustituir por el QR real que apunte a tu enlace de descarga -->
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+            <rect width="100" height="100" fill="#fff"/>
+            <g fill="#0f172a">
+              <rect x="5" y="5" width="25" height="25"/><rect x="10" y="10" width="15" height="15" fill="#fff"/><rect x="13" y="13" width="9" height="9" fill="#0f172a"/>
+              <rect x="70" y="5" width="25" height="25"/><rect x="75" y="10" width="15" height="15" fill="#fff"/><rect x="78" y="13" width="9" height="9" fill="#0f172a"/>
+              <rect x="5" y="70" width="25" height="25"/><rect x="10" y="75" width="15" height="15" fill="#fff"/><rect x="13" y="78" width="9" height="9" fill="#0f172a"/>
+              <rect x="40" y="5" width="6" height="6"/><rect x="52" y="5" width="6" height="6"/><rect x="40" y="17" width="6" height="6"/>
+              <rect x="5" y="40" width="6" height="6"/><rect x="17" y="40" width="6" height="6"/><rect x="40" y="40" width="6" height="6"/>
+              <rect x="58" y="40" width="6" height="6"/><rect x="70" y="40" width="6" height="6"/><rect x="88" y="40" width="6" height="6"/>
+              <rect x="40" y="52" width="6" height="6"/><rect x="52" y="58" width="6" height="6"/><rect x="64" y="52" width="6" height="6"/>
+              <rect x="76" y="58" width="6" height="6"/><rect x="88" y="52" width="6" height="6"/><rect x="40" y="70" width="6" height="6"/>
+              <rect x="52" y="76" width="6" height="6"/><rect x="64" y="70" width="6" height="6"/><rect x="76" y="76" width="6" height="6"/>
+              <rect x="88" y="70" width="6" height="6"/><rect x="40" y="88" width="6" height="6"/><rect x="64" y="88" width="6" height="6"/>
+              <rect x="76" y="88" width="6" height="6"/>
+            </g>
+          </svg>
+        </div>
+        <span>Escanea para descargar</span>
+      </div>
+    </section>
+
+    <!-- PIE -->
+    <footer class="pie">
+      <span>www.tudominio.com</span>
+      <span>📞 +00 000 000 000 &nbsp;·&nbsp; @tuapp</span>
+    </footer>
+
+  </div>
+</body>
+</html>
