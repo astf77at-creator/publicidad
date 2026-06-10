@@ -1,0 +1,13 @@
+# Caddy reverse proxy para Memoria Central YOOHOO.
+# Caddy obtiene y renueva el certificado TLS automáticamente (Let's Encrypt).
+#
+# Instalar este bloque en /etc/caddy/Caddyfile (o como sitio aparte) y recargar:
+#   sudo caddy reload --config /etc/caddy/Caddyfile
+#
+# Requisito: el registro A de memoria.yoohoo.mx debe apuntar a la IP del VPS
+# ANTES de recargar, para que el desafío ACME funcione.
+
+memoria.yoohoo.mx {
+	encode gzip
+	reverse_proxy 127.0.0.1:8742
+}

@@ -1,0 +1,15 @@
+# Secretos y datos: NUNCA versionar
+.env
+data/*.db
+data/*.db-wal
+data/*.db-shm
+backups/*.gz
+backups/*.db
+
+# Estado de checkpoints de los hooks (por session_id)
+hooks/state/*.json
+
+# Entorno y artefactos
+venv/
+__pycache__/
+*.pyc

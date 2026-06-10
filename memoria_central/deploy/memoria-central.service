@@ -1,0 +1,24 @@
+[Unit]
+Description=Memoria Central YOOHOO (FastAPI REST + MCP Streamable HTTP)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=memoria
+Group=memoria
+WorkingDirectory=/opt/memoria_central
+EnvironmentFile=/opt/memoria_central/.env
+ExecStart=/opt/memoria_central/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8742
+Restart=always
+RestartSec=3
+
+# Endurecimiento: el servicio solo necesita escribir en data/ y backups/.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/memoria_central/data /opt/memoria_central/backups
+
+[Install]
+WantedBy=multi-user.target
