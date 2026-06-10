@@ -65,6 +65,7 @@ class SesionIn(BaseModel):
     etiquetas: str = ""
     session_id: str = ""
     tipo: str = "manual"
+    fecha: str = ""  # ISO-8601 opcional; si viene, se respeta (útil para importar)
 
 
 # --------------------------------------------------------------------------- #
@@ -117,6 +118,7 @@ def crear_sesion(s: SesionIn) -> dict:
             etiquetas=s.etiquetas,
             session_id=s.session_id,
             tipo=s.tipo,
+            fecha=s.fecha or None,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
