@@ -10,11 +10,26 @@ Las 5 tools son envoltorios finos sobre la capa db.py.
 
 from __future__ import annotations
 
+import os
 from typing import Any
+from urllib.parse import urlparse
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 from . import db
+
+# El transporte Streamable HTTP valida el header Host (protección anti
+# DNS-rebinding). Como uvicorn escucha en 127.0.0.1, FastMCP la auto-activa solo
+# para localhost y rechazaría el host público que reenvía nginx. Añadimos el
+# host de MEMORIA_PUBLIC_URL a la lista de permitidos (mantenemos la protección).
+_public = os.environ.get("MEMORIA_PUBLIC_URL", "http://127.0.0.1:8742")
+_host = urlparse(_public).netloc  # p.ej. memoria.yoohoo.mx
+_allowed_hosts = ["127.0.0.1:*", "localhost:*", "[::1]:*"]
+_allowed_origins = ["127.0.0.1:*", "localhost:*", "[::1]:*"]
+if _host:
+    _allowed_hosts += [_host, f"{_host}:*"]
+    _allowed_origins += [_public, f"https://{_host}", f"http://{_host}"]
 
 # stateless_http=True: cada request es autocontenida (sin estado de sesión MCP),
 # ideal para un conector remoto detrás de un proxy.
@@ -25,6 +40,11 @@ mcp = FastMCP(
     # Ruta interna /mcp; el sub-app se monta en "/" desde main.py, así el
     # endpoint final es exactamente /mcp sin redirección de trailing-slash.
     streamable_http_path="/mcp",
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=_allowed_hosts,
+        allowed_origins=_allowed_origins,
+    ),
 )
 
 
