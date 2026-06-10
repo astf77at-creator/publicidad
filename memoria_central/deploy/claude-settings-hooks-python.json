@@ -1,0 +1,29 @@
+{
+  "_comentario": "Hook multiplataforma (Windows/macOS/Linux) que NO necesita bash. Pega el contenido de 'hooks' en tu settings.json de usuario. AJUSTA la ruta a hook_memoria.py. En Windows las barras deben ir dobles (\\\\). Requiere Python 3 en el PATH (en Windows el comando suele ser 'python'; en macOS/Linux 'python3'). El token y la URL se leen de variables de entorno o de un fichero config.env junto al script.",
+  "_ejemplo_windows": "C:\\\\Users\\\\TU_USUARIO\\\\memoria_central\\\\hooks\\\\hook_memoria.py",
+  "_ejemplo_unix": "/home/TU_USUARIO/memoria_central/hooks/hook_memoria.py",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\\\Users\\\\TU_USUARIO\\\\memoria_central\\\\hooks\\\\hook_memoria.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\\\Users\\\\TU_USUARIO\\\\memoria_central\\\\hooks\\\\hook_memoria.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
