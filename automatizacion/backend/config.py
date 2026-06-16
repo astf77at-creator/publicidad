@@ -1,0 +1,35 @@
+"""Configuración cargada desde variables de entorno (.env)."""
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    # Odoo
+    odoo_url: str = ""
+    odoo_db: str = ""
+    odoo_username: str = ""
+    odoo_api_key: str = ""
+    odoo_category_field: str = "categ_id"
+    odoo_brand_field: str = "product_brand_id"
+    odoo_reference_field: str = "default_code"
+    odoo_published_field: str = "is_published"
+    odoo_tag_review: str = "Revisión de imágenes"
+    odoo_tag_ready: str = "Listo"
+
+    # OpenAI
+    openai_api_key: str = ""
+    openai_image_model: str = "gpt-image-1"
+    poses_por_producto: int = 6
+
+    # Imágenes de salida
+    img_ancho: int = 800
+    img_alto: int = 1000
+    img_max_kb: int = 100
+
+    # Servidor
+    host: str = "0.0.0.0"
+    port: int = 8080
+
+
+settings = Settings()

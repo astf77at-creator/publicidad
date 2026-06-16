@@ -1,0 +1,92 @@
+"""Prompts por tipo de prenda para la API de imágenes.
+
+Resumen de prompts-fotografia.md adaptado a la API: una pose por imagen.
+La prenda es la protagonista (70-80% del encuadre); el rostro es secundario.
+"""
+
+REGLA_MAESTRA = (
+    "La prenda es la protagonista y debe ocupar el 70-80% del encuadre. "
+    "Acerca el plano y recorta lo necesario para que la prenda llene el cuadro. "
+    "Minimiza el fondo vacío. La modelo y la cara son secundarias; el rostro "
+    "puede quedar recortado o parcial. Fondo de estudio neutro gris claro "
+    "minimalista, luz suave y sombra natural, estilo editorial comercial tipo Zara. "
+    "No agregues texto, marcas de agua, marcos ni elementos gráficos."
+)
+
+# Para cada tipo: el encuadre base + la lista de poses (una imagen por pose).
+TIPOS: dict[str, dict] = {
+    "superior": {
+        "label": "Superior (blusa, camisa, top, sweater)",
+        "encuadre": "Plano cerrado de torso, de hombros/cuello a la cadera. NO cuerpo completo.",
+        "poses": [
+            "frontal con manos relajadas",
+            "tres cuartos con una mano hacia el rostro",
+            "tres cuartos con mano en el bolsillo",
+            "brazos cruzados",
+            "perfil",
+            "detalle de torso de pecho a cadera sin rostro, enfocado en tela y botones",
+        ],
+    },
+    "inferior": {
+        "label": "Inferior (pantalón, jean, falda, short)",
+        "encuadre": "Plano cerrado de la mitad inferior: de la cintura a los tobillos. Recorta por encima de la cintura.",
+        "poses": [
+            "frontal cintura a pies",
+            "caminando",
+            "perfil mostrando la caída",
+            "tres cuartos",
+            "sentada mostrando la pierna",
+            "detalle de cintura y bolsillo",
+        ],
+    },
+    "completo": {
+        "label": "Abrigo, blazer, vestido, mono, conjunto",
+        "encuadre": "Plano medio-largo cerrado: de la cabeza/hombros hasta justo bajo el bajo de la prenda. La prenda domina el cuadro. Evita el plano entero con la modelo pequeña.",
+        "poses": [
+            "frontal",
+            "perfil",
+            "caminando",
+            "tres cuartos con mano en bolsillo",
+            "sentada",
+            "vuelta parcial de espalda",
+        ],
+    },
+    "calzado": {
+        "label": "Calzado (zapatos, botas, sandalias, tenis)",
+        "encuadre": "Plano cerrado de pies y tobillos, de la rodilla hacia abajo, el zapato grande y nítido.",
+        "poses": [
+            "detalle frontal de pies",
+            "detalle de perfil",
+            "paso cruzado",
+            "caminando",
+            "de pie",
+            "toma de contexto de styling",
+        ],
+    },
+    "accesorio": {
+        "label": "Accesorio (bolso, cinturón, gafas, joyería)",
+        "encuadre": "Plano de detalle cerrado con el accesorio grande y nítido; el cuerpo solo como apoyo.",
+        "poses": [
+            "detalle frontal",
+            "detalle en ángulo",
+            "llevado puesto en plano medio",
+            "en mano",
+            "caminando con el accesorio visible",
+        ],
+    },
+}
+
+
+def build_prompt(tipo: str, descripcion: str, pose: str) -> str:
+    cfg = TIPOS.get(tipo, TIPOS["completo"])
+    return (
+        f"Usa la imagen subida ÚNICAMENTE como referencia de la prenda: {descripcion}. "
+        f"Genera UNA imagen en esta pose: {pose}. "
+        f"Reproduce la prenda con fidelidad total en color, patrón, textura, proporción "
+        f"y detalles. {cfg['encuadre']} {REGLA_MAESTRA}"
+    )
+
+
+def poses_for(tipo: str, n: int) -> list[str]:
+    poses = TIPOS.get(tipo, TIPOS["completo"])["poses"]
+    return (poses * ((n // len(poses)) + 1))[:n]
