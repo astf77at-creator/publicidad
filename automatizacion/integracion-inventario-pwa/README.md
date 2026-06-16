@@ -8,6 +8,11 @@ El backend FastAPI de `automatizacion/` escucha **solo en `127.0.0.1:8080`** y s
 publica bajo el mismo dominio/HTTPS de la PWA mediante un reverse proxy de nginx
 en **`/img-api/`**. El puerto 8080 no se abre en el firewall.
 
+> El backend Node de la propia Inventario PWA (puerto 3100) es independiente de
+> esta integración. Si tras reiniciarlo falla con `libnode.so.NNN: cannot open
+> shared object file` (módulo nativo `better-sqlite3`), ver la sección
+> *Troubleshooting* más abajo.
+
 ```
 Navegador ──HTTPS──► nginx (captura.yoohoo.mx)
                       ├─ /inventario/      → PWA estática (dist) + pantalla "Imágenes web"
@@ -88,6 +93,34 @@ curl -m 8 http://<IP_VPS>:8080/api/health   # -> timeout / rechazado
 ```
 En la PWA: entrar a `/inventario/`, **Home → Imágenes web**, subir frente +
 espalda, elegir Tipo → Categoría → Marca → Referencia y pulsar **Generar**.
+
+## Troubleshooting: `inventario-pwa.service` no arranca (better-sqlite3 / libnode.so)
+
+Síntoma (`journalctl -u inventario-pwa.service`):
+
+```
+Error: libnode.so.109: cannot open shared object file: No such file or directory
+    at ... better-sqlite3/lib/database.js
+code: 'ERR_DLOPEN_FAILED'
+```
+
+**Causa:** el binding nativo de `better-sqlite3` quedó compilado contra un Node con
+`libnode.so` (build shared). El Node de nodesource (`/usr/bin/node`) está enlazado
+estáticamente y no provee `libnode.so`. Aflora al **actualizar Node**: el proceso
+viejo seguía vivo y solo falla al reiniciar el servicio.
+
+**Arreglo** (recompilar el módulo nativo desde fuente contra el Node actual):
+
+```bash
+cd /var/www/inventario-pwa/server
+npm rebuild better-sqlite3 --build-from-source
+systemctl restart inventario-pwa.service
+ldd build/Release/better_sqlite3.node | grep libnode   # no debe aparecer
+```
+
+Requiere `build-essential`, `g++`, `make`, `python3`. Repetir tras cada
+actualización de Node. (Documentado también en
+`/var/www/inventario-pwa/DEPLOY_Y_PRUEBAS.md` del VPS.)
 
 ## Nota sobre tiempos (POSES_POR_PRODUCTO vs proxy_read_timeout)
 
