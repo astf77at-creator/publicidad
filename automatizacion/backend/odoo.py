@@ -6,10 +6,13 @@ módulos: solo usa los endpoints estándar /xmlrpc/2/common y /xmlrpc/2/object.
 from __future__ import annotations
 
 import base64
+import logging
 import xmlrpc.client
 from functools import lru_cache
 
 from .config import settings
+
+log = logging.getLogger(__name__)
 
 
 class OdooClient:
@@ -19,6 +22,7 @@ class OdooClient:
         self.username = settings.odoo_username
         self.api_key = settings.odoo_api_key
         self._uid: int | None = None
+        self._model_exists: dict[str, bool] = {}
         self._models = xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/object")
 
     # ---- autenticación ----
@@ -35,6 +39,18 @@ class OdooClient:
         return self._models.execute_kw(
             self.db, self.uid, self.api_key, model, method, list(args), kwargs or {}
         )
+
+    def has_model(self, model: str) -> bool:
+        """¿Existe este modelo en la instancia? (cacheado).
+
+        Permite degradar con elegancia en instancias sin website_sale, donde
+        el modelo product.image (imágenes extra) no está disponible.
+        """
+        if model not in self._model_exists:
+            self._model_exists[model] = bool(
+                self.execute("ir.model", "search_count", [["model", "=", model]])
+            )
+        return self._model_exists[model]
 
     # ---- selección en cascada ----
     def get_categories(self) -> list[dict]:
@@ -78,7 +94,15 @@ class OdooClient:
             return
         principal = base64.b64encode(images_png[0]).decode()
         self.execute("product.template", "write", [template_id], {"image_1920": principal})
-        for idx, img in enumerate(images_png[1:], start=1):
+        extras = images_png[1:]
+        if extras and not self.has_model("product.image"):
+            log.warning(
+                "product.image no existe en esta instancia (sin website_sale): "
+                "guardada solo la imagen principal; se omiten %d poses extra.",
+                len(extras),
+            )
+            return
+        for idx, img in enumerate(extras, start=1):
             self.execute("product.image", "create", {
                 "name": f"pose-{idx}",
                 "image_1920": base64.b64encode(img).decode(),
@@ -88,6 +112,8 @@ class OdooClient:
     def clear_product_images(self, template_id: int) -> None:
         """Borra imágenes (descartadas): principal + extras."""
         self.execute("product.template", "write", [template_id], {"image_1920": False})
+        if not self.has_model("product.image"):
+            return
         extra_ids = self.execute(
             "product.image", "search", [["product_tmpl_id", "=", template_id]]
         )
