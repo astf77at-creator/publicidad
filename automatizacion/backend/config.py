@@ -15,9 +15,10 @@ class Settings(BaseSettings):
     odoo_reference_field: str = "default_code"
     odoo_published_field: str = "is_published"
     odoo_tag_review: str = "Revisión de imágenes"
-    # Color de la etiqueta de revisión (product.tag.color es char: acepta hex).
-    # Naranja fluorescente para que destaque entre las etiquetas WC.
-    odoo_tag_review_color: str = "#FF6600"
+    # Color de la etiqueta de revisión. El widget de Odoo pinta por ÍNDICE de
+    # paleta (no hex): 1=rojo, 2=naranja, 3=amarillo, 10=verde… Igual que las
+    # etiquetas WC (Listo="3", Publicado="10"). 2 = naranja para que destaque.
+    odoo_tag_review_color: str = "2"
     odoo_tag_ready: str = "Listo"
     # Campo del PIN de empleado usado para autenticar (mismo que el lanzador).
     odoo_pin_field: str = "yh_checador_pin"
