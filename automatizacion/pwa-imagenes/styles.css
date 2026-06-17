@@ -25,3 +25,11 @@ button:disabled{opacity:.5;cursor:not-allowed;}
 .ref-estado{margin-top:8px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:600;border:1px solid #cbd5e1;background:#fff;}
 .ref-estado.ok{border-color:#16a34a;background:#f0fdf4;color:#166534;}
 .ref-estado.error{border-color:#dc2626;background:#fef2f2;color:#991b1b;}
+.progreso{margin-top:18px;}
+.barra{height:16px;background:var(--claro);border:1px solid #cbd5e1;border-radius:9px;overflow:hidden;}
+.relleno{height:100%;width:0;background-color:var(--azul2);
+  background-image:linear-gradient(45deg,rgba(255,255,255,.35) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.35) 50%,rgba(255,255,255,.35) 75%,transparent 75%,transparent);
+  background-size:28px 28px;animation:barra-mov 1s linear infinite;transition:width .4s ease;}
+.relleno.indeterminada{width:100%;opacity:.85;}
+@keyframes barra-mov{from{background-position:0 0;}to{background-position:28px 0;}}
+.progreso-txt{margin-top:8px;font-size:14px;font-weight:600;color:var(--gris);text-align:center;}

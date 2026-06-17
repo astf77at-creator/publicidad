@@ -9,8 +9,10 @@ Flujo principal (POST /api/jobs):
 """
 from __future__ import annotations
 
+import json
+
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import settings
@@ -94,20 +96,34 @@ async def create_job(
         raise HTTPException(400, "Faltan las dos fotos (frente y trasero).")
 
     poses = poses_for(tipo, settings.poses_por_producto)
-    webps: list[bytes] = []
-    for pose in poses:
-        prompt = build_prompt(tipo, descripcion, pose)
-        png = generate_pose(refs, prompt)
-        webps.append(to_webp(png))
 
-    odoo = get_odoo()
-    odoo.set_product_images(reference_id, webps)
-    if settings.odoo_tag_review:
-        odoo.add_tag(reference_id, settings.odoo_tag_review)
-    if settings.odoo_tag_ready:
-        odoo.add_tag(reference_id, settings.odoo_tag_ready)
+    # Respuesta en streaming (NDJSON): un evento por pose para que el front
+    # muestre una barra de avance real en vez de quedarse "congelado".
+    def stream():
+        def ev(obj: dict) -> bytes:
+            return (json.dumps(obj) + "\n").encode()
+        try:
+            total = len(poses)
+            yield ev({"stage": "start", "total": total})
+            webps: list[bytes] = []
+            for i, pose in enumerate(poses, 1):
+                prompt = build_prompt(tipo, descripcion, pose)
+                png = generate_pose(refs, prompt)
+                webps.append(to_webp(png))
+                yield ev({"stage": "pose", "done": i, "total": total})
+            yield ev({"stage": "uploading"})
+            odoo = get_odoo()
+            odoo.set_product_images(reference_id, webps)
+            if settings.odoo_tag_review:
+                odoo.add_tag(reference_id, settings.odoo_tag_review)
+            if settings.odoo_tag_ready:
+                odoo.add_tag(reference_id, settings.odoo_tag_ready)
+            yield ev({"stage": "done", "ok": True,
+                      "reference_id": reference_id, "imagenes": len(webps)})
+        except Exception as e:  # noqa: BLE001
+            yield ev({"stage": "error", "detail": str(e)})
 
-    return JSONResponse({"ok": True, "reference_id": reference_id, "imagenes": len(webps)})
+    return StreamingResponse(stream(), media_type="application/x-ndjson")
 
 
 # ---------- ciclo de vida de la etiqueta de revisión ----------

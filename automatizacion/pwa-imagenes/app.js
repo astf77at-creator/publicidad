@@ -171,17 +171,62 @@ $("form").addEventListener("submit", async (e) => {
   fd.append("frente", $("frente").files[0]);
   fd.append("trasero", $("trasero").files[0]);
 
+  const prog = $("progreso"), relleno = $("barra-relleno"), ptxt = $("progreso-txt");
+  function setProg(done, total, label) {
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    relleno.classList.remove("indeterminada");
+    relleno.style.width = pct + "%";
+    ptxt.textContent = label;
+  }
+
   btn.disabled = true;
-  estado.hidden = false; estado.className = "estado";
-  estado.textContent = "Generando imágenes… esto puede tardar un minuto.";
+  estado.hidden = true;
+  prog.hidden = false;
+  relleno.classList.remove("indeterminada");
+  relleno.style.width = "0%";
+  ptxt.textContent = "Preparando…";
+
   try {
     const res = await authFetch("/jobs", { method: "POST", body: fd });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Error");
+    if (!res.ok) {
+      // Error antes del stream (401/400): cuerpo JSON.
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.detail || `Error ${res.status}`);
+    }
+    // Lectura del stream NDJSON: un evento por pose.
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "", result = null, errMsg = null;
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        let ev;
+        try { ev = JSON.parse(line); } catch (e) { continue; }
+        if (ev.stage === "start") setProg(0, ev.total, `Generando imágenes… 0 de ${ev.total}`);
+        else if (ev.stage === "pose") setProg(ev.done, ev.total, `Generando pose ${ev.done} de ${ev.total}…`);
+        else if (ev.stage === "uploading") { relleno.classList.add("indeterminada"); ptxt.textContent = "Subiendo imágenes a Odoo…"; }
+        else if (ev.stage === "done") result = ev;
+        else if (ev.stage === "error") errMsg = ev.detail || "Error generando imágenes";
+      }
+    }
+    if (errMsg) throw new Error(errMsg);
+    if (!result) throw new Error("La conexión se interrumpió antes de terminar. Revisa en Odoo si las imágenes se subieron.");
+    relleno.classList.remove("indeterminada");
+    relleno.style.width = "100%";
+    prog.hidden = true;
+    estado.hidden = false;
     estado.className = "estado ok";
-    estado.textContent = `✅ Listo: ${data.imagenes} imágenes subidas al producto. ` +
+    estado.textContent = `✅ Listo: ${result.imagenes} imágenes subidas al producto. ` +
       `Etiqueta "Revisión de imágenes" añadida en Odoo.`;
   } catch (err) {
+    prog.hidden = true;
+    estado.hidden = false;
     estado.className = "estado error";
     estado.textContent = "❌ " + err.message;
   } finally {
