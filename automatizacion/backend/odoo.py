@@ -134,16 +134,26 @@ class OdooClient:
             self.execute("product.image", "unlink", extra_ids)
 
     # ---- etiquetas (product.tag) ----
-    def _tag_id(self, name: str, create: bool = True) -> int | None:
+    def _tag_id(self, name: str, create: bool = True,
+                color: str | None = None) -> int | None:
         ids = self.execute("product.tag", "search", [["name", "=", name]], limit=1)
         if ids:
-            return ids[0]
+            tid = ids[0]
+            if color:  # asegurar el color pedido (corrige el por defecto)
+                cur = self.execute("product.tag", "read", [tid],
+                                   fields=["color"])[0].get("color")
+                if cur != color:
+                    self.execute("product.tag", "write", [tid], {"color": color})
+            return tid
         if create:
-            return self.execute("product.tag", "create", {"name": name})
+            vals = {"name": name}
+            if color:
+                vals["color"] = color
+            return self.execute("product.tag", "create", vals)
         return None
 
-    def add_tag(self, template_id: int, name: str) -> None:
-        tid = self._tag_id(name)
+    def add_tag(self, template_id: int, name: str, color: str | None = None) -> None:
+        tid = self._tag_id(name, color=color)
         self.execute("product.template", "write", [template_id],
                      {"product_tag_ids": [(4, tid)]})
 

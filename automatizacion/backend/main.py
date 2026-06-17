@@ -117,7 +117,8 @@ async def create_job(
             odoo = get_odoo()
             odoo.set_product_images(reference_id, webps)
             if settings.odoo_tag_review:
-                odoo.add_tag(reference_id, settings.odoo_tag_review)
+                odoo.add_tag(reference_id, settings.odoo_tag_review,
+                             color=settings.odoo_tag_review_color)
             if settings.odoo_tag_ready:
                 odoo.add_tag(reference_id, settings.odoo_tag_ready)
             yield ev({"stage": "done", "ok": True,
