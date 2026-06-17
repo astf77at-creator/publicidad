@@ -38,18 +38,19 @@
         <label>Tipo de prenda
           <select id="tipo" required></select>
         </label>
-        <label>Categoría
-          <select id="categoria" required></select>
+        <label>Referencia (SKU)
+          <div class="ref-row">
+            <input type="text" id="referencia" placeholder="Escribe o pega la referencia…"
+                   autocomplete="off" autocapitalize="off" spellcheck="false"
+                   list="ref-sugerencias" required>
+            <button type="button" id="verificar">Verificar</button>
+          </div>
+          <datalist id="ref-sugerencias"></datalist>
         </label>
-        <label>Marca
-          <select id="marca" required disabled></select>
-        </label>
-        <label>Referencia
-          <select id="referencia" required disabled></select>
-        </label>
+        <div id="ref-estado" class="ref-estado" hidden></div>
       </fieldset>
 
-      <button type="submit" id="enviar">Generar imágenes</button>
+      <button type="submit" id="enviar" disabled>Generar imágenes</button>
     </form>
 
     <div id="estado" class="estado" hidden></div>

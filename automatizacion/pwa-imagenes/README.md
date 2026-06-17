@@ -73,8 +73,18 @@ curl -s https://captura.yoohoo.mx/imagenes/ | grep -o '<title>[^<]*</title>'    
 ```
 
 En el navegador: entrar a **https://me.yoohoo.mx/app**, checar con un PIN válido,
-y tocar el mosaico **Imágenes web** → abre la pantalla, carga el catálogo (Tipo /
-Categoría / Marca / Referencia), subir frente + trasero y **Generar imágenes**.
+y tocar el mosaico **Imágenes web** → abre la pantalla. El operador elige **Tipo
+de prenda** y escribe/pega la **Referencia (SKU)**; al salir del campo o pulsar
+**Verificar** se consulta `GET /api/reference/lookup?code=…` (match exacto sobre
+`default_code`):
+
+- existe → muestra en verde el nombre del producto y **habilita** "Generar imágenes";
+- no existe o vacío → "Referencia no encontrada" y "Generar" queda deshabilitado.
+
+Al generar se usa el `id` del producto **resuelto por la referencia verificada**
+(no se permite generar sin verificación válida). Hay autocompletado opcional
+(`/api/reference/suggest?code=…`) mientras se escribe. Luego: subir frente +
+trasero y **Generar imágenes**.
 
 > Nota tiempos: el backend genera `POSES_POR_PRODUCTO` imágenes secuenciales con
 > gpt-image-1 (~20-40 s c/u). Con 6 poses el job puede superar `proxy_read_timeout

@@ -57,6 +57,25 @@ def references(category_id: int, brand: str, _emp: dict = Depends(require_pin)):
     return get_odoo().get_references(category_id, val)
 
 
+# ---------- verificación por referencia exacta (SKU) ----------
+@app.get("/api/reference/lookup")
+def reference_lookup(code: str, _emp: dict = Depends(require_pin)):
+    """Busca un producto por referencia EXACTA (default_code).
+
+    200 -> {id, name, default_code}.  404 -> referencia no encontrada.
+    """
+    prod = get_odoo().lookup_reference(code)
+    if not prod:
+        raise HTTPException(404, "Referencia no encontrada")
+    return prod
+
+
+@app.get("/api/reference/suggest")
+def reference_suggest(code: str, _emp: dict = Depends(require_pin)):
+    """Autocompletado: referencias que empiezan por `code` (máx. 8)."""
+    return get_odoo().suggest_references(code)
+
+
 # ---------- orquestación ----------
 @app.post("/api/jobs")
 async def create_job(

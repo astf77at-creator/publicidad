@@ -70,9 +70,7 @@ async function init() {
   }
   try {
     const tipos = await api("/tipos");           // valida el PIN de paso
-    const cats = await api("/categories");
     fill($("tipo"), tipos, { value: "id", label: "label", placeholder: "Elige tipo…" });
-    fill($("categoria"), cats, { placeholder: "Elige categoría…" });
     $("form").hidden = false;
   } catch (err) {
     if (/401/.test(err.message) || /PIN/i.test(err.message)) {
@@ -83,24 +81,75 @@ async function init() {
   }
 }
 
-// --- cascada Categoría -> Marca -> Referencia ---
-$("categoria").addEventListener("change", async (e) => {
-  const id = e.target.value;
-  $("marca").disabled = true; $("referencia").disabled = true;
-  if (!id) return;
-  fill($("marca"), await api(`/brands?category_id=${id}`),
-    { placeholder: "Elige marca…" });
-  $("marca").disabled = false;
+// --- verificación por referencia exacta (SKU) ---
+// Producto resuelto: solo se permite generar cuando esto está poblado y
+// coincide con el texto actual del campo.
+let verificado = null;   // { id, name, default_code } | null
+
+function setRefEstado(msg, cls) {
+  const e = $("ref-estado");
+  e.hidden = false;
+  e.textContent = msg;
+  e.className = "ref-estado " + (cls || "");
+}
+
+function resetVerificacion() {
+  verificado = null;
+  $("enviar").disabled = true;
+}
+
+async function verificarReferencia() {
+  const code = $("referencia").value.trim();
+  resetVerificacion();
+  if (!code) { setRefEstado("Escribe una referencia.", "error"); return; }
+  setRefEstado("Verificando…", "");
+  try {
+    const r = await authFetch(`/reference/lookup?code=${encodeURIComponent(code)}`);
+    if (r.status === 404) { setRefEstado("Referencia no encontrada", "error"); return; }
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      throw new Error(d.detail || `Error ${r.status}`);
+    }
+    const prod = await r.json();
+    verificado = prod;
+    setRefEstado("✓ " + (prod.name || prod.default_code), "ok");
+    $("enviar").disabled = false;
+  } catch (err) {
+    setRefEstado("❌ " + err.message, "error");
+  }
+}
+
+$("verificar").addEventListener("click", verificarReferencia);
+$("referencia").addEventListener("blur", () => {
+  if ($("referencia").value.trim()) verificarReferencia();
+});
+// Cualquier edición invalida la verificación previa.
+$("referencia").addEventListener("input", () => {
+  if (!verificado || $("referencia").value.trim() !== verificado.default_code) {
+    resetVerificacion();
+    $("ref-estado").hidden = true;
+  }
 });
 
-$("marca").addEventListener("change", async (e) => {
-  const brand = e.target.value;
-  const cat = $("categoria").value;
-  $("referencia").disabled = true;
-  if (!brand) return;
-  const refs = await api(`/references?category_id=${cat}&brand=${encodeURIComponent(brand)}`);
-  fill($("referencia"), refs, { label: "name", placeholder: "Elige referencia…" });
-  $("referencia").disabled = false;
+// --- autocompletado (opcional): sugiere referencias mientras se escribe ---
+let sugTimer = null;
+$("referencia").addEventListener("input", () => {
+  const code = $("referencia").value.trim();
+  clearTimeout(sugTimer);
+  if (code.length < 2) return;
+  sugTimer = setTimeout(async () => {
+    try {
+      const items = await api(`/reference/suggest?code=${encodeURIComponent(code)}`);
+      const dl = $("ref-sugerencias");
+      dl.innerHTML = "";
+      for (const it of items) {
+        const o = document.createElement("option");
+        o.value = it.default_code;
+        o.label = it.name || "";
+        dl.appendChild(o);
+      }
+    } catch (e) { /* sugerencias son best-effort */ }
+  }, 250);
 });
 
 // --- envío ---
@@ -108,13 +157,17 @@ $("form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const estado = $("estado");
   const btn = $("enviar");
-  const refSel = $("referencia");
-  const descripcion = refSel.options[refSel.selectedIndex]?.text || "";
+
+  if (!verificado || $("referencia").value.trim() !== verificado.default_code) {
+    setRefEstado("Verifica la referencia antes de generar.", "error");
+    resetVerificacion();
+    return;
+  }
 
   const fd = new FormData();
-  fd.append("reference_id", refSel.value);
+  fd.append("reference_id", verificado.id);
   fd.append("tipo", $("tipo").value);
-  fd.append("descripcion", descripcion);
+  fd.append("descripcion", verificado.name || verificado.default_code);
   fd.append("frente", $("frente").files[0]);
   fd.append("trasero", $("trasero").files[0]);
 

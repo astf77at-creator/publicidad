@@ -145,6 +145,37 @@ class OdooClient:
         self.execute("product.template", "write", [template_id],
                      {settings.odoo_published_field: published})
 
+    # ---- búsqueda por referencia exacta (SKU / default_code) ----
+    def lookup_reference(self, code: str) -> dict | None:
+        """Producto cuyo default_code coincide EXACTO con `code`, o None."""
+        code = (code or "").strip()
+        if not code:
+            return None
+        field = settings.odoo_reference_field
+        recs = self.execute(
+            "product.template", "search_read",
+            [[field, "=", code]],
+            fields=["id", "name", field], limit=1,
+        )
+        if not recs:
+            return None
+        r = recs[0]
+        return {"id": r["id"], "name": r.get("name"), "default_code": r.get(field)}
+
+    def suggest_references(self, code: str, limit: int = 8) -> list[dict]:
+        """Sugerencias de referencias cuyo default_code empieza por `code`."""
+        code = (code or "").strip()
+        if not code:
+            return []
+        field = settings.odoo_reference_field
+        recs = self.execute(
+            "product.template", "search_read",
+            [[field, "=ilike", code + "%"]],
+            fields=["id", "name", field], limit=limit,
+        )
+        return [{"id": r["id"], "name": r.get("name"),
+                 "default_code": r.get(field)} for r in recs]
+
     # ---- autenticación por PIN (mismo esquema que el lanzador me.yoohoo.mx) ----
     def find_employee_by_pin(self, pin: str) -> dict | None:
         """Devuelve {id, name} del empleado cuyo PIN de checador coincide, o None.
