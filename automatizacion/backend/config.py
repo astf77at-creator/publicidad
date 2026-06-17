@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     odoo_published_field: str = "is_published"
     odoo_tag_review: str = "Revisión de imágenes"
     odoo_tag_ready: str = "Listo"
+    # Campo del PIN de empleado usado para autenticar (mismo que el lanzador).
+    odoo_pin_field: str = "yh_checador_pin"
 
     # OpenAI
     openai_api_key: str = ""

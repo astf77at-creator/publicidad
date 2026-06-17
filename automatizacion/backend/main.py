@@ -9,7 +9,7 @@ Flujo principal (POST /api/jobs):
 """
 from __future__ import annotations
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -22,24 +22,37 @@ from .prompts import TIPOS, build_prompt, poses_for
 app = FastAPI(title="Automatización de imágenes de producto")
 
 
+# ---------- autenticación por PIN ----------
+# Mismo esquema que el lanzador me.yoohoo.mx: el PIN del empleado llega en la
+# cabecera X-Pin y se valida contra hr.employee. Así /img-api/ no queda abierto.
+def require_pin(x_pin: str | None = Header(default=None)) -> dict:
+    value = (x_pin or "").strip()
+    if not value:
+        raise HTTPException(401, "PIN requerido. Entra desde el lanzador.")
+    emp = get_odoo().find_employee_by_pin(value)
+    if not emp:
+        raise HTTPException(401, "PIN inválido.")
+    return emp
+
+
 # ---------- catálogos / cascada ----------
 @app.get("/api/tipos")
-def tipos():
+def tipos(_emp: dict = Depends(require_pin)):
     return [{"id": k, "label": v["label"]} for k, v in TIPOS.items()]
 
 
 @app.get("/api/categories")
-def categories():
+def categories(_emp: dict = Depends(require_pin)):
     return get_odoo().get_categories()
 
 
 @app.get("/api/brands")
-def brands(category_id: int):
+def brands(category_id: int, _emp: dict = Depends(require_pin)):
     return get_odoo().get_brands(category_id)
 
 
 @app.get("/api/references")
-def references(category_id: int, brand: str):
+def references(category_id: int, brand: str, _emp: dict = Depends(require_pin)):
     val: str | int = int(brand) if brand.isdigit() else brand
     return get_odoo().get_references(category_id, val)
 
@@ -52,6 +65,7 @@ async def create_job(
     descripcion: str = Form(...),
     frente: UploadFile = File(...),
     trasero: UploadFile = File(...),
+    _emp: dict = Depends(require_pin),
 ):
     if tipo not in TIPOS:
         raise HTTPException(400, f"Tipo de prenda inválido: {tipo}")
@@ -77,7 +91,7 @@ async def create_job(
 
 # ---------- ciclo de vida de la etiqueta de revisión ----------
 @app.post("/api/products/{template_id}/discard")
-def discard_images(template_id: int):
+def discard_images(template_id: int, _emp: dict = Depends(require_pin)):
     """Descartar imágenes: las borra y quita la etiqueta de revisión."""
     odoo = get_odoo()
     odoo.clear_product_images(template_id)
@@ -86,7 +100,7 @@ def discard_images(template_id: int):
 
 
 @app.post("/api/products/{template_id}/publish")
-def publish(template_id: int):
+def publish(template_id: int, _emp: dict = Depends(require_pin)):
     """Publicar: activa el toggle y quita la etiqueta de revisión."""
     odoo = get_odoo()
     odoo.set_published(template_id, True)

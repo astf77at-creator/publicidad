@@ -1,5 +1,13 @@
 # Integración "Imágenes web" en la Inventario PWA
 
+> **OBSOLETO (2026-06-17).** Esta integración dentro de la Inventario PWA se
+> **revirtió**: "Imágenes web" pasó a ser una **app propia** del lanzador
+> `me.yoohoo.mx` con su mosaico independiente. La entrada de menú, la ruta y
+> `pages/ImagenesWeb.jsx` se quitaron de la Inventario PWA (sin tocar el resto).
+> La implementación vigente está en [`../pwa-imagenes/`](../pwa-imagenes/README.md).
+> Se conserva este documento solo como referencia histórica del reverse proxy
+> `/img-api/`, que sigue en uso.
+
 Añade una pantalla nueva **Imágenes web** a la Inventario PWA existente
 (`https://captura.yoohoo.mx/inventario/`, Vite + React 18 + react-router-dom),
 en vez de exponer el backend en el puerto 8080.

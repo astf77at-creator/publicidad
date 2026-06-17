@@ -145,6 +145,22 @@ class OdooClient:
         self.execute("product.template", "write", [template_id],
                      {settings.odoo_published_field: published})
 
+    # ---- autenticación por PIN (mismo esquema que el lanzador me.yoohoo.mx) ----
+    def find_employee_by_pin(self, pin: str) -> dict | None:
+        """Devuelve {id, name} del empleado cuyo PIN de checador coincide, o None.
+
+        Usa el mismo campo que el lanzador/checador (hr.employee.yh_checador_pin).
+        """
+        pin = (pin or "").strip()
+        if not pin:
+            return None
+        recs = self.execute(
+            "hr.employee", "search_read",
+            [[settings.odoo_pin_field, "=", pin]],
+            fields=["id", "name"], limit=1,
+        )
+        return recs[0] if recs else None
+
 
 @lru_cache
 def get_odoo() -> OdooClient:
