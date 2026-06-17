@@ -25,6 +25,8 @@ TIPOS: dict[str, dict] = {
             "brazos cruzados",
             "perfil",
             "detalle de torso de pecho a cadera sin rostro, enfocado en tela y botones",
+            "vuelta parcial de espalda mostrando el corte trasero",
+            "tres cuartos trasero con giro de hombros",
         ],
     },
     "inferior": {
@@ -37,6 +39,8 @@ TIPOS: dict[str, dict] = {
             "tres cuartos",
             "sentada mostrando la pierna",
             "detalle de cintura y bolsillo",
+            "trasero mostrando el ajuste y los bolsillos traseros",
+            "detalle del bajo y la caída sobre el calzado",
         ],
     },
     "completo": {
@@ -49,6 +53,8 @@ TIPOS: dict[str, dict] = {
             "tres cuartos con mano en bolsillo",
             "sentada",
             "vuelta parcial de espalda",
+            "tres cuartos frontal con movimiento de tela",
+            "detalle de cuello y solapa o escote",
         ],
     },
     "calzado": {
@@ -61,6 +67,8 @@ TIPOS: dict[str, dict] = {
             "caminando",
             "de pie",
             "toma de contexto de styling",
+            "detalle cenital desde arriba",
+            "par de pies juntos de frente",
         ],
     },
     "accesorio": {
@@ -72,6 +80,9 @@ TIPOS: dict[str, dict] = {
             "llevado puesto en plano medio",
             "en mano",
             "caminando con el accesorio visible",
+            "primerísimo plano de textura y material",
+            "tres cuartos llevado puesto",
+            "vista trasera o del cierre/broche",
         ],
     },
 }
