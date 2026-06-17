@@ -61,6 +61,14 @@ function showGate(msg) {
   g.hidden = false;
   g.textContent = "🔒 " + msg;
   $("form").hidden = true;
+  $("btn-faltantes").hidden = true;
+  $("faltantes").hidden = true;
+}
+
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 async function init() {
@@ -72,6 +80,7 @@ async function init() {
     const tipos = await api("/tipos");           // valida el PIN de paso
     fill($("tipo"), tipos, { value: "id", label: "label", placeholder: "Elige tipo…" });
     $("form").hidden = false;
+    $("btn-faltantes").hidden = false;
   } catch (err) {
     if (/401/.test(err.message) || /PIN/i.test(err.message)) {
       showGate("PIN inválido o sesión no reconocida. Vuelve a entrar desde el lanzador.");
@@ -118,6 +127,49 @@ async function verificarReferencia() {
     setRefEstado("❌ " + err.message, "error");
   }
 }
+
+// --- panel "productos sin imagen" (priorizados por stock) ---
+async function cargarFaltantes() {
+  const panel = $("faltantes");
+  panel.hidden = false;
+  panel.innerHTML = '<div class="faltantes-msg">Cargando productos sin imagen…</div>';
+  try {
+    const items = await api("/products/missing-images");
+    if (!items.length) {
+      panel.innerHTML = '<div class="faltantes-msg">No hay productos con stock sin imagen. 🎉</div>';
+      return;
+    }
+    let html = `<div class="faltantes-head">${items.length} productos sin imagen (con stock) · toca uno para usarlo</div>`;
+    let cat = null;
+    for (const it of items) {
+      if (it.categoria !== cat) {
+        cat = it.categoria;
+        html += `<div class="faltantes-cat">${esc(cat)}</div>`;
+      }
+      html += `<div class="faltantes-row" data-code="${esc(it.default_code)}">` +
+        `<span class="fq" title="piezas disponibles">${it.qty}</span>` +
+        `<span class="fc">${esc(it.default_code)}</span>` +
+        `<span class="fn">${esc(it.name)}</span></div>`;
+    }
+    panel.innerHTML = html;
+    panel.querySelectorAll(".faltantes-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        $("referencia").value = row.getAttribute("data-code");
+        panel.hidden = true;
+        verificarReferencia();
+        $("form").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  } catch (err) {
+    panel.innerHTML = `<div class="faltantes-msg error">❌ ${esc(err.message)}</div>`;
+  }
+}
+
+$("btn-faltantes").addEventListener("click", () => {
+  const panel = $("faltantes");
+  if (panel.hidden) cargarFaltantes();   // abrir: recarga fresco (la lista cambia)
+  else panel.hidden = true;              // cerrar
+});
 
 $("verificar").addEventListener("click", verificarReferencia);
 $("referencia").addEventListener("blur", () => {

@@ -168,6 +168,33 @@ class OdooClient:
         self.execute("product.template", "write", [template_id],
                      {settings.odoo_published_field: published})
 
+    # ---- productos SIN imagen, priorizados por stock ----
+    def products_missing_images(self, limit: int = 1000) -> list[dict]:
+        """Productos sin imagen principal y con piezas disponibles.
+
+        Devuelve [{id, name, default_code, categoria, qty}] ordenado por
+        categoría/subcategoría (complete_name del categ_id) y, dentro de cada
+        una, de mayor a menor cantidad disponible.
+        """
+        domain = [["image_1920", "=", False], ["qty_available", ">", 0]]
+        recs = self.execute(
+            "product.template", "search_read", domain,
+            fields=["id", "name", "default_code", "categ_id", "qty_available"],
+            limit=limit,
+        )
+        out = []
+        for r in recs:
+            cat = r["categ_id"][1] if r.get("categ_id") else "Sin categoría"
+            out.append({
+                "id": r["id"],
+                "name": r.get("name"),
+                "default_code": r.get("default_code") or "",
+                "categoria": cat,
+                "qty": r.get("qty_available") or 0,
+            })
+        out.sort(key=lambda x: (x["categoria"], -x["qty"]))
+        return out
+
     # ---- búsqueda por referencia exacta (SKU / default_code) ----
     def lookup_reference(self, code: str) -> dict | None:
         """Producto cuyo default_code coincide EXACTO con `code`, o None."""

@@ -33,3 +33,14 @@ button:disabled{opacity:.5;cursor:not-allowed;}
 .relleno.indeterminada{width:100%;opacity:.85;}
 @keyframes barra-mov{from{background-position:0 0;}to{background-position:28px 0;}}
 .progreso-txt{margin-top:8px;font-size:14px;font-weight:600;color:var(--gris);text-align:center;}
+.btn-faltantes{width:100%;margin:0 0 16px;background:var(--gris);}
+.faltantes{margin:0 0 18px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;max-height:55vh;overflow:auto;}
+.faltantes-head{padding:10px 12px;font-size:13px;color:var(--gris);border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#fff;z-index:2;}
+.faltantes-cat{padding:7px 12px;font-weight:700;color:var(--azul);background:var(--claro);font-size:13px;position:sticky;top:38px;z-index:1;}
+.faltantes-row{display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid #f1f5f9;cursor:pointer;font-size:14px;}
+.faltantes-row:active{background:#eff6ff;}
+.fq{min-width:30px;text-align:center;font-weight:700;color:#fff;background:var(--azul2);border-radius:12px;padding:1px 6px;font-size:12px;}
+.fc{font-weight:700;}
+.fn{color:var(--gris);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.faltantes-msg{padding:16px;text-align:center;color:var(--gris);font-size:14px;}
+.faltantes-msg.error{color:#991b1b;}

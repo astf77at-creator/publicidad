@@ -61,6 +61,12 @@ def references(category_id: int, brand: str, _emp: dict = Depends(require_pin)):
     return get_odoo().get_references(category_id, val)
 
 
+# ---------- productos sin imagen (priorizados por stock) ----------
+@app.get("/api/products/missing-images")
+def products_missing_images(_emp: dict = Depends(require_pin)):
+    return get_odoo().products_missing_images()
+
+
 # ---------- verificación por referencia exacta (SKU) ----------
 @app.get("/api/reference/lookup")
 def reference_lookup(code: str, _emp: dict = Depends(require_pin)):
