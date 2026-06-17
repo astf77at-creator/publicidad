@@ -16,11 +16,12 @@ log = logging.getLogger(__name__)
 
 
 class OdooClient:
-    def __init__(self) -> None:
-        self.url = settings.odoo_url.rstrip("/")
-        self.db = settings.odoo_db
-        self.username = settings.odoo_username
-        self.api_key = settings.odoo_api_key
+    def __init__(self, url: str | None = None, db: str | None = None,
+                 username: str | None = None, api_key: str | None = None) -> None:
+        self.url = (url or settings.odoo_url).rstrip("/")
+        self.db = db or settings.odoo_db
+        self.username = username or settings.odoo_username
+        self.api_key = api_key or settings.odoo_api_key
         self._uid: int | None = None
         self._model_exists: dict[str, bool] = {}
         self._models = xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/object")
@@ -196,3 +197,20 @@ class OdooClient:
 @lru_cache
 def get_odoo() -> OdooClient:
     return OdooClient()
+
+
+@lru_cache
+def get_auth_odoo() -> OdooClient:
+    """Conexión usada para validar el PIN.
+
+    Si hay credenciales de auth separadas (p. ej. el espejo, donde viven los
+    empleados/PINs del lanzador), úsalas; si no, recae en la principal.
+    """
+    if settings.odoo_auth_url:
+        return OdooClient(
+            url=settings.odoo_auth_url,
+            db=settings.odoo_auth_db,
+            username=settings.odoo_auth_username,
+            api_key=settings.odoo_auth_api_key,
+        )
+    return get_odoo()

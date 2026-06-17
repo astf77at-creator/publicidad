@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .imaging import to_webp
-from .odoo import get_odoo
+from .odoo import get_auth_odoo, get_odoo
 from .openai_images import generate_pose
 from .prompts import TIPOS, build_prompt, poses_for
 
@@ -29,7 +29,7 @@ def require_pin(x_pin: str | None = Header(default=None)) -> dict:
     value = (x_pin or "").strip()
     if not value:
         raise HTTPException(401, "PIN requerido. Entra desde el lanzador.")
-    emp = get_odoo().find_employee_by_pin(value)
+    emp = get_auth_odoo().find_employee_by_pin(value)
     if not emp:
         raise HTTPException(401, "PIN inválido.")
     return emp
@@ -102,8 +102,10 @@ async def create_job(
 
     odoo = get_odoo()
     odoo.set_product_images(reference_id, webps)
-    odoo.add_tag(reference_id, settings.odoo_tag_review)
-    odoo.add_tag(reference_id, settings.odoo_tag_ready)
+    if settings.odoo_tag_review:
+        odoo.add_tag(reference_id, settings.odoo_tag_review)
+    if settings.odoo_tag_ready:
+        odoo.add_tag(reference_id, settings.odoo_tag_ready)
 
     return JSONResponse({"ok": True, "reference_id": reference_id, "imagenes": len(webps)})
 

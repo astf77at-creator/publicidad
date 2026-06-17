@@ -19,6 +19,15 @@ class Settings(BaseSettings):
     # Campo del PIN de empleado usado para autenticar (mismo que el lanzador).
     odoo_pin_field: str = "yh_checador_pin"
 
+    # Conexión SEPARADA para validar el PIN (auth). Útil cuando los productos
+    # viven en producción (sin el campo del PIN) pero los empleados/PINs del
+    # lanzador están en otra instancia (el espejo). Si se dejan vacías, la auth
+    # usa la misma conexión principal (odoo_url/db/...).
+    odoo_auth_url: str = ""
+    odoo_auth_db: str = ""
+    odoo_auth_username: str = ""
+    odoo_auth_api_key: str = ""
+
     # OpenAI
     openai_api_key: str = ""
     openai_image_model: str = "gpt-image-1"
