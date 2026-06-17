@@ -11,6 +11,7 @@ import io
 from openai import OpenAI
 
 from .config import settings
+from .imaging import to_png_reference
 
 _client: OpenAI | None = None
 
@@ -31,7 +32,7 @@ def generate_pose(reference_images: list[bytes], prompt: str) -> bytes:
     client = _client_singleton()
     files = []
     for idx, img in enumerate(reference_images):
-        bio = io.BytesIO(img)
+        bio = io.BytesIO(to_png_reference(img))   # PNG real (nombre y contenido coinciden)
         bio.name = f"ref-{idx}.png"
         files.append(bio)
 

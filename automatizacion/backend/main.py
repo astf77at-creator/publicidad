@@ -10,6 +10,7 @@ Flujo principal (POST /api/jobs):
 from __future__ import annotations
 
 import json
+import logging
 
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -22,6 +23,7 @@ from .openai_images import generate_pose
 from .prompts import TIPOS, build_prompt, poses_for
 
 app = FastAPI(title="Automatización de imágenes de producto")
+log = logging.getLogger("automatizacion")
 
 
 # ---------- autenticación por PIN ----------
@@ -121,6 +123,8 @@ async def create_job(
             yield ev({"stage": "done", "ok": True,
                       "reference_id": reference_id, "imagenes": len(webps)})
         except Exception as e:  # noqa: BLE001
+            log.exception("Fallo generando/subiendo imágenes (ref=%s, tipo=%s)",
+                          reference_id, tipo)
             yield ev({"stage": "error", "detail": str(e)})
 
     return StreamingResponse(stream(), media_type="application/x-ndjson")

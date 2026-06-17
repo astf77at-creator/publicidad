@@ -3,9 +3,27 @@ from __future__ import annotations
 
 import io
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from .config import settings
+
+
+def to_png_reference(raw: bytes, max_side: int = 1536) -> bytes:
+    """Normaliza una foto de entrada a PNG real para enviarla a OpenAI.
+
+    Las fotos del teléfono llegan en JPEG (u otros) y a veces con orientación
+    EXIF o tamaño grande; OpenAI rechaza (400) si el contenido no es un formato
+    válido o pesa demasiado. Aquí: corrige orientación, pasa a RGB, reduce el
+    lado mayor a `max_side` y exporta PNG.
+    """
+    img = Image.open(io.BytesIO(raw))
+    img = ImageOps.exif_transpose(img)        # respeta orientación de la cámara
+    img = img.convert("RGB")
+    if max(img.size) > max_side:
+        img.thumbnail((max_side, max_side), Image.LANCZOS)
+    out = io.BytesIO()
+    img.save(out, format="PNG")
+    return out.getvalue()
 
 
 def to_webp(png_bytes: bytes) -> bytes:

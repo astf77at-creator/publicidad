@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import base64
 import logging
+import threading
 import xmlrpc.client
 from functools import lru_cache
 
@@ -23,21 +24,32 @@ class OdooClient:
         self.username = username or settings.odoo_username
         self.api_key = api_key or settings.odoo_api_key
         self._uid: int | None = None
+        self._uid_lock = threading.Lock()
         self._model_exists: dict[str, bool] = {}
-        self._models = xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/object")
 
     # ---- autenticación ----
     @property
     def uid(self) -> int:
+        # Double-checked locking: autentica UNA sola vez aunque lleguen muchas
+        # peticiones concurrentes. Sin esto, una ráfaga dispara N authenticate
+        # simultáneos y Odoo Online responde 429 Too Many Requests.
         if self._uid is None:
-            common = xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/common")
-            self._uid = common.authenticate(self.db, self.username, self.api_key, {})
-            if not self._uid:
-                raise RuntimeError("No se pudo autenticar en Odoo. Revisa credenciales.")
+            with self._uid_lock:
+                if self._uid is None:
+                    common = xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/common")
+                    self._uid = common.authenticate(
+                        self.db, self.username, self.api_key, {})
+                    if not self._uid:
+                        raise RuntimeError(
+                            "No se pudo autenticar en Odoo. Revisa credenciales.")
         return self._uid
 
     def execute(self, model: str, method: str, *args, **kwargs):
-        return self._models.execute_kw(
+        # ServerProxy NUEVO por llamada: xmlrpc.client reutiliza una sola
+        # conexión HTTP por proxy y NO es thread-safe; compartirla entre
+        # peticiones concurrentes corrompe la conexión (CannotSendRequest).
+        models = xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/object")
+        return models.execute_kw(
             self.db, self.uid, self.api_key, model, method, list(args), kwargs or {}
         )
 
