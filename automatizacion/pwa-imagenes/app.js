@@ -172,19 +172,37 @@ $("form").addEventListener("submit", async (e) => {
   fd.append("trasero", $("trasero").files[0]);
 
   const prog = $("progreso"), relleno = $("barra-relleno"), ptxt = $("progreso-txt");
-  function setProg(done, total, label) {
-    const pct = total ? Math.round((done / total) * 100) : 0;
-    relleno.classList.remove("indeterminada");
-    relleno.style.width = pct + "%";
-    ptxt.textContent = label;
+  // Estado de progreso + estimación de tiempo restante (ETA).
+  let t0 = 0, label = "Preparando…", eta = null, tick = null;
+  const SEG_POR_POSE = 30;   // estimación inicial por pose, hasta medir la 1ª
+
+  function fmtEta(s) {
+    if (s == null) return "";
+    if (s <= 1) return "casi listo…";
+    if (s < 60) return `~${Math.round(s)} s restantes`;
+    return `~${Math.ceil(s / 60)} min restantes`;
   }
+  function render() {
+    ptxt.textContent = eta != null ? `${label} · ${fmtEta(eta)}` : label;
+  }
+  function setBar(done, total) {
+    relleno.classList.remove("indeterminada");
+    relleno.style.width = (total ? Math.round((done / total) * 100) : 0) + "%";
+  }
+  function startTick() {
+    clearInterval(tick);
+    tick = setInterval(() => {        // cuenta regresiva suave entre poses
+      if (eta != null && eta > 1) { eta -= 1; render(); }
+    }, 1000);
+  }
+  function stopTick() { clearInterval(tick); tick = null; }
 
   btn.disabled = true;
   estado.hidden = true;
   prog.hidden = false;
   relleno.classList.remove("indeterminada");
   relleno.style.width = "0%";
-  ptxt.textContent = "Preparando…";
+  render();
 
   try {
     const res = await authFetch("/jobs", { method: "POST", body: fd });
@@ -208,10 +226,25 @@ $("form").addEventListener("submit", async (e) => {
         if (!line) continue;
         let ev;
         try { ev = JSON.parse(line); } catch (e) { continue; }
-        if (ev.stage === "start") setProg(0, ev.total, `Generando imágenes… 0 de ${ev.total}`);
-        else if (ev.stage === "pose") setProg(ev.done, ev.total, `Generando pose ${ev.done} de ${ev.total}…`);
-        else if (ev.stage === "uploading") { relleno.classList.add("indeterminada"); ptxt.textContent = "Subiendo imágenes a Odoo…"; }
-        else if (ev.stage === "done") result = ev;
+        if (ev.stage === "start") {
+          t0 = Date.now();
+          setBar(0, ev.total);
+          label = `Generando imágenes… 0 de ${ev.total}`;
+          eta = ev.total * SEG_POR_POSE;     // estimación inicial
+          render(); startTick();
+        } else if (ev.stage === "pose") {
+          setBar(ev.done, ev.total);
+          label = `Generando pose ${ev.done} de ${ev.total}…`;
+          // Afinar ETA con el ritmo real medido hasta ahora.
+          const transcurrido = (Date.now() - t0) / 1000;
+          const porPose = transcurrido / ev.done;
+          eta = ev.done >= ev.total ? null : Math.round(porPose * (ev.total - ev.done));
+          render();
+        } else if (ev.stage === "uploading") {
+          stopTick(); eta = null;
+          relleno.classList.add("indeterminada");
+          label = "Subiendo imágenes a Odoo…"; render();
+        } else if (ev.stage === "done") result = ev;
         else if (ev.stage === "error") errMsg = ev.detail || "Error generando imágenes";
       }
     }
@@ -230,6 +263,7 @@ $("form").addEventListener("submit", async (e) => {
     estado.className = "estado error";
     estado.textContent = "❌ " + err.message;
   } finally {
+    stopTick();
     btn.disabled = false;
   }
 });
