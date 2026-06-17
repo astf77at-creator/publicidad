@@ -1,5 +1,5 @@
 // Service worker mínimo: cachea el shell para que la pantalla sea instalable.
-const CACHE = "imagenes-v1";
+const CACHE = "imagenes-v2";
 const SHELL = ["./", "index.html", "styles.css", "app.js", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
