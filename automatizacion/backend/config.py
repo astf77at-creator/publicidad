@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     openai_image_model: str = "gpt-image-1"
     poses_por_producto: int = 6
 
+    # Cola de trabajos: cuántas generaciones se procesan EN PARALELO. Súbelo
+    # con cuidado (cada una consume CPU/RAM y cuota de OpenAI). 2 es seguro.
+    concurrencia_jobs: int = 2
+
     # Imágenes de salida
     img_ancho: int = 800
     img_alto: int = 1000

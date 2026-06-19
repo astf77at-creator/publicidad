@@ -6,14 +6,22 @@ Flujo principal (POST /api/jobs):
   3. Convierte cada pose a WEBP 800x1000 <=100KB.
   4. Sube las imágenes al producto en Odoo.
   5. Añade etiquetas "Revisión de imágenes" + "Listo".
+
+La generación NO se hace en línea: se ENCOLA. POST /api/jobs responde de
+inmediato con un job_id y un worker en segundo plano (concurrencia limitada)
+procesa el trabajo. El front consulta el avance con GET /api/jobs/{job_id}.
+Así varios usuarios pueden mandar trabajos a la vez sin 504 y el proceso
+continúa aunque se cierre la página.
 """
 from __future__ import annotations
 
-import json
 import logging
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from uuid import uuid4
 
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
-from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import settings
@@ -86,7 +94,68 @@ def reference_suggest(code: str, _emp: dict = Depends(require_pin)):
     return get_odoo().suggest_references(code)
 
 
-# ---------- orquestación ----------
+# ========================================================================
+#  COLA DE TRABAJOS
+#  Un worker pool con concurrencia limitada procesa los trabajos en segundo
+#  plano. El estado vive en memoria (suficiente para este caso); si el
+#  servicio se reinicia, los trabajos en curso se pierden (hay que reenviar).
+# ========================================================================
+_executor = ThreadPoolExecutor(max_workers=max(1, settings.concurrencia_jobs))
+_jobs: dict[str, dict] = {}
+_jobs_lock = threading.Lock()
+
+
+def _update(job_id: str, **fields) -> None:
+    with _jobs_lock:
+        job = _jobs.get(job_id)
+        if job:
+            job.update(fields)
+            job["actualizado"] = time.time()
+
+
+def _prune(max_age: float = 7200) -> None:
+    """Limpia trabajos terminados (listo/error) viejos para no acumular RAM."""
+    now = time.time()
+    with _jobs_lock:
+        viejos = [
+            k for k, v in _jobs.items()
+            if v["estado"] in ("listo", "error") and now - v["actualizado"] > max_age
+        ]
+        for k in viejos:
+            _jobs.pop(k, None)
+
+
+def _process_job(job_id: str, reference_id: int, tipo: str,
+                 descripcion: str, refs: list[bytes]) -> None:
+    """Trabajo pesado (corre en un hilo del pool): OpenAI + WEBP + Odoo."""
+    poses = poses_for(tipo, settings.poses_por_producto)
+    total = len(poses)
+    _update(job_id, estado="procesando", total=total, done=0,
+            etapa=f"Generando imágenes… 0 de {total}")
+    try:
+        webps: list[bytes] = []
+        for i, pose in enumerate(poses, 1):
+            prompt = build_prompt(tipo, descripcion, pose)
+            png = generate_pose(refs, prompt)
+            webps.append(to_webp(png))
+            _update(job_id, done=i, etapa=f"Generando pose {i} de {total}…")
+
+        _update(job_id, etapa="Subiendo imágenes a Odoo…")
+        odoo = get_odoo()
+        odoo.set_product_images(reference_id, webps)
+        if settings.odoo_tag_review:
+            odoo.add_tag(reference_id, settings.odoo_tag_review,
+                         color=settings.odoo_tag_review_color)
+        if settings.odoo_tag_ready:
+            odoo.add_tag(reference_id, settings.odoo_tag_ready)
+
+        _update(job_id, estado="listo", imagenes=len(webps), etapa="Listo")
+    except Exception as e:  # noqa: BLE001
+        log.exception("Fallo generando/subiendo imágenes (ref=%s, tipo=%s)",
+                      reference_id, tipo)
+        _update(job_id, estado="error", detail=str(e), etapa="Error")
+
+
 @app.post("/api/jobs")
 async def create_job(
     reference_id: int = Form(...),
@@ -94,8 +163,9 @@ async def create_job(
     descripcion: str = Form(...),
     frente: UploadFile = File(...),
     trasero: UploadFile = File(...),
-    _emp: dict = Depends(require_pin),
+    emp: dict = Depends(require_pin),
 ):
+    """Encola un trabajo y responde de inmediato con su job_id."""
     if tipo not in TIPOS:
         raise HTTPException(400, f"Tipo de prenda inválido: {tipo}")
 
@@ -103,38 +173,35 @@ async def create_job(
     if not all(refs):
         raise HTTPException(400, "Faltan las dos fotos (frente y trasero).")
 
-    poses = poses_for(tipo, settings.poses_por_producto)
+    _prune()
+    job_id = uuid4().hex
+    now = time.time()
+    with _jobs_lock:
+        _jobs[job_id] = {
+            "id": job_id,
+            "estado": "en_cola",
+            "total": settings.poses_por_producto,
+            "done": 0,
+            "etapa": "En cola…",
+            "reference_id": reference_id,
+            "producto": descripcion,
+            "empleado": (emp.get("name") if isinstance(emp, dict) else "") or "",
+            "imagenes": 0,
+            "detail": None,
+            "creado": now,
+            "actualizado": now,
+        }
+    _executor.submit(_process_job, job_id, reference_id, tipo, descripcion, refs)
+    return {"job_id": job_id, "estado": "en_cola"}
 
-    # Respuesta en streaming (NDJSON): un evento por pose para que el front
-    # muestre una barra de avance real en vez de quedarse "congelado".
-    def stream():
-        def ev(obj: dict) -> bytes:
-            return (json.dumps(obj) + "\n").encode()
-        try:
-            total = len(poses)
-            yield ev({"stage": "start", "total": total})
-            webps: list[bytes] = []
-            for i, pose in enumerate(poses, 1):
-                prompt = build_prompt(tipo, descripcion, pose)
-                png = generate_pose(refs, prompt)
-                webps.append(to_webp(png))
-                yield ev({"stage": "pose", "done": i, "total": total})
-            yield ev({"stage": "uploading"})
-            odoo = get_odoo()
-            odoo.set_product_images(reference_id, webps)
-            if settings.odoo_tag_review:
-                odoo.add_tag(reference_id, settings.odoo_tag_review,
-                             color=settings.odoo_tag_review_color)
-            if settings.odoo_tag_ready:
-                odoo.add_tag(reference_id, settings.odoo_tag_ready)
-            yield ev({"stage": "done", "ok": True,
-                      "reference_id": reference_id, "imagenes": len(webps)})
-        except Exception as e:  # noqa: BLE001
-            log.exception("Fallo generando/subiendo imágenes (ref=%s, tipo=%s)",
-                          reference_id, tipo)
-            yield ev({"stage": "error", "detail": str(e)})
 
-    return StreamingResponse(stream(), media_type="application/x-ndjson")
+@app.get("/api/jobs/{job_id}")
+def job_status(job_id: str, _emp: dict = Depends(require_pin)):
+    with _jobs_lock:
+        job = _jobs.get(job_id)
+    if not job:
+        raise HTTPException(404, "Trabajo no encontrado")
+    return job
 
 
 # ---------- ciclo de vida de la etiqueta de revisión ----------

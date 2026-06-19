@@ -257,51 +257,52 @@ $("form").addEventListener("submit", async (e) => {
   render();
 
   try {
+    // 1) Encolar el trabajo: el backend responde de inmediato con un job_id.
     const res = await authFetch("/jobs", { method: "POST", body: fd });
     if (!res.ok) {
-      // Error antes del stream (401/400): cuerpo JSON.
       const d = await res.json().catch(() => ({}));
       throw new Error(d.detail || `Error ${res.status}`);
     }
-    // Lectura del stream NDJSON: un evento por pose.
-    const reader = res.body.getReader();
-    const dec = new TextDecoder();
-    let buf = "", result = null, errMsg = null;
+    const { job_id } = await res.json();
+
+    // El trabajo se procesa en el SERVIDOR (cola). Aunque cierres la página,
+    // sigue su curso. Aquí solo consultamos el estado periódicamente.
+    label = "En cola…"; eta = null;
+    relleno.classList.add("indeterminada");
+    render();
+
+    let result = null;
     for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += dec.decode(value, { stream: true });
-      let nl;
-      while ((nl = buf.indexOf("\n")) >= 0) {
-        const line = buf.slice(0, nl).trim();
-        buf = buf.slice(nl + 1);
-        if (!line) continue;
-        let ev;
-        try { ev = JSON.parse(line); } catch (e) { continue; }
-        if (ev.stage === "start") {
-          t0 = Date.now();
-          setBar(0, ev.total);
-          label = `Generando imágenes… 0 de ${ev.total}`;
-          eta = ev.total * SEG_POR_POSE;     // estimación inicial
-          render(); startTick();
-        } else if (ev.stage === "pose") {
-          setBar(ev.done, ev.total);
-          label = `Generando pose ${ev.done} de ${ev.total}…`;
-          // Afinar ETA con el ritmo real medido hasta ahora.
-          const transcurrido = (Date.now() - t0) / 1000;
-          const porPose = transcurrido / ev.done;
-          eta = ev.done >= ev.total ? null : Math.round(porPose * (ev.total - ev.done));
-          render();
-        } else if (ev.stage === "uploading") {
-          stopTick(); eta = null;
+      await new Promise((r) => setTimeout(r, 1500));
+      let job;
+      try { job = await api(`/jobs/${job_id}`); }
+      catch (e) { continue; }   // reintenta ante fallos puntuales de red
+
+      if (job.estado === "en_cola") {
+        relleno.classList.add("indeterminada");
+        label = "En cola…"; eta = null; render();
+      } else if (job.estado === "procesando") {
+        if (!t0) t0 = Date.now();
+        const total = job.total || 0, done = job.done || 0;
+        if (job.etapa && /subiendo/i.test(job.etapa)) {
           relleno.classList.add("indeterminada");
-          label = "Subiendo imágenes a Odoo…"; render();
-        } else if (ev.stage === "done") result = ev;
-        else if (ev.stage === "error") errMsg = ev.detail || "Error generando imágenes";
+          label = "Subiendo imágenes a Odoo…"; eta = null; render();
+        } else {
+          setBar(done, total);
+          label = `Generando imágenes… ${done} de ${total}`;
+          if (done > 0) {
+            const porPose = ((Date.now() - t0) / 1000) / done;
+            eta = done >= total ? null : Math.round(porPose * (total - done));
+          }
+          render();
+        }
+      } else if (job.estado === "listo") {
+        result = job; break;
+      } else if (job.estado === "error") {
+        throw new Error(job.detail || "Error generando imágenes");
       }
     }
-    if (errMsg) throw new Error(errMsg);
-    if (!result) throw new Error("La conexión se interrumpió antes de terminar. Revisa en Odoo si las imágenes se subieron.");
+
     relleno.classList.remove("indeterminada");
     relleno.style.width = "100%";
     prog.hidden = true;
