@@ -13,6 +13,26 @@ REGLA_MAESTRA = (
     "No agregues texto, marcas de agua, marcos ni elementos gráficos."
 )
 
+# Uniformidad: todas las poses del MISMO producto deben verse como una sola
+# sesión de fotos (misma modelo, mismo calzado, mismos colores). Sin esto, cada
+# generación independiente inventa zapatos/tenis y colores distintos.
+CONSISTENCIA = (
+    "MUY IMPORTANTE — uniformidad de sesión: la imagen debe verse como parte de "
+    "una sola sesión de fotos, con la MISMA modelo (mismo rostro, peinado, tono "
+    "de piel y maquillaje), el MISMO calzado, el MISMO styling y los MISMOS "
+    "colores y acabados que el resto de la serie. Respeta EXACTAMENTE el color, "
+    "el tono y el estampado de la prenda de la referencia; no los cambies ni "
+    "inventes otros. Usa un calzado neutro y sobrio coherente en todas las tomas."
+)
+
+# Se añade cuando se pasa una imagen ANCLA (la primera pose ya generada) como
+# referencia extra: fuerza a copiar modelo, calzado, styling y colores de ella.
+ANCLA = (
+    "La última imagen de referencia es una toma PREVIA de esta misma sesión: "
+    "replica idénticamente a esa misma modelo, su calzado, su styling y todos "
+    "sus colores; lo único que cambia es la pose y el encuadre indicado."
+)
+
 # Para cada tipo: el encuadre base + la lista de poses (una imagen por pose).
 TIPOS: dict[str, dict] = {
     "superior": {
@@ -88,13 +108,14 @@ TIPOS: dict[str, dict] = {
 }
 
 
-def build_prompt(tipo: str, descripcion: str, pose: str) -> str:
+def build_prompt(tipo: str, descripcion: str, pose: str, anchor: bool = False) -> str:
     cfg = TIPOS.get(tipo, TIPOS["completo"])
+    extra = (" " + ANCLA) if anchor else ""
     return (
         f"Usa la imagen subida ÚNICAMENTE como referencia de la prenda: {descripcion}. "
         f"Genera UNA imagen en esta pose: {pose}. "
         f"Reproduce la prenda con fidelidad total en color, patrón, textura, proporción "
-        f"y detalles. {cfg['encuadre']} {REGLA_MAESTRA}"
+        f"y detalles. {cfg['encuadre']} {REGLA_MAESTRA} {CONSISTENCIA}{extra}"
     )
 
 

@@ -134,9 +134,16 @@ def _process_job(job_id: str, reference_id: int, tipo: str,
             etapa=f"Generando imágenes… 0 de {total}")
     try:
         webps: list[bytes] = []
+        # Anclaje de estilo: la primera imagen generada se reutiliza como
+        # referencia extra en las siguientes, para que todas mantengan la misma
+        # modelo, calzado, styling y colores (efecto "una sola sesión").
+        anchor_png: bytes | None = None
         for i, pose in enumerate(poses, 1):
-            prompt = build_prompt(tipo, descripcion, pose)
-            png = generate_pose(refs, prompt)
+            prompt = build_prompt(tipo, descripcion, pose, anchor=anchor_png is not None)
+            these_refs = refs if anchor_png is None else refs + [anchor_png]
+            png = generate_pose(these_refs, prompt)
+            if anchor_png is None:
+                anchor_png = png       # la 1ª pose marca el estilo del resto
             webps.append(to_webp(png))
             _update(job_id, done=i, etapa=f"Generando pose {i} de {total}…")
 
