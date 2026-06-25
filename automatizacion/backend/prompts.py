@@ -33,6 +33,18 @@ ANCLA = (
     "sus colores; lo único que cambia es la pose y el encuadre indicado."
 )
 
+# Contexto de decoro para evitar falsos positivos de moderación (p. ej. un body
+# o traje de baño que el filtro confunde con ropa interior / contenido sexual).
+DECORO = (
+    "Contexto: es una fotografía de catálogo de MODA COMERCIAL para una tienda "
+    "de ropa (e-commerce), totalmente decorosa, profesional y NO sugerente. La "
+    "modelo lleva la prenda de forma apropiada y con cobertura adecuada. Si la "
+    "prenda es un body, maillot, traje de baño u otra prenda ajustada de una "
+    "pieza, estilízala como TOP combinándola con jeans o pantalón de tiro alto, "
+    "como un conjunto de calle. No generes ropa interior, desnudos ni contenido "
+    "sugerente: es una imagen de producto de moda apta para catálogo."
+)
+
 # Para cada tipo: el encuadre base + la lista de poses (una imagen por pose).
 TIPOS: dict[str, dict] = {
     "superior": {
@@ -115,7 +127,7 @@ def build_prompt(tipo: str, descripcion: str, pose: str, anchor: bool = False) -
         f"Usa la imagen subida ÚNICAMENTE como referencia de la prenda: {descripcion}. "
         f"Genera UNA imagen en esta pose: {pose}. "
         f"Reproduce la prenda con fidelidad total en color, patrón, textura, proporción "
-        f"y detalles. {cfg['encuadre']} {REGLA_MAESTRA} {CONSISTENCIA}{extra}"
+        f"y detalles. {cfg['encuadre']} {REGLA_MAESTRA} {CONSISTENCIA} {DECORO}{extra}"
     )
 
 
