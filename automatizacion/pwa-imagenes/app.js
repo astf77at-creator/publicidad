@@ -122,8 +122,10 @@ async function loadColors(code) {
     if (!colors.length) { $("enviar").disabled = false; return; }
     sel.insertAdjacentHTML("beforeend", `<option value="">Elige color…</option>`);
     for (const c of colors) {
+      const qty = Math.round(c.qty || 0);
+      const label = `${c.color} · ${qty} pza${qty === 1 ? "" : "s"}`;
       sel.insertAdjacentHTML("beforeend",
-        `<option value="${c.variant_ids.join(",")}">${esc(c.color)}</option>`);
+        `<option value="${c.variant_ids.join(",")}">${esc(label)}</option>`);
     }
     wrap.hidden = false;
     $("enviar").disabled = true;   // exige elegir color

@@ -240,7 +240,7 @@ class OdooClient:
         variants = self.execute(
             "product.product", "search_read",
             [["product_tmpl_id", "=", tmpl["id"]]],
-            fields=["id", "product_template_attribute_value_ids"],
+            fields=["id", "product_template_attribute_value_ids", "qty_available"],
         )
         val_ids = sorted({v for r in variants
                           for v in r.get("product_template_attribute_value_ids", [])})
@@ -267,8 +267,10 @@ class OdooClient:
                     break
             if color_name is None:
                 continue   # variante sin color: no se ofrece en el selector
-            colors.setdefault(color_name, {"color": color_name, "variant_ids": []})
-            colors[color_name]["variant_ids"].append(r["id"])
+            entry = colors.setdefault(
+                color_name, {"color": color_name, "variant_ids": [], "qty": 0})
+            entry["variant_ids"].append(r["id"])
+            entry["qty"] += r.get("qty_available") or 0   # suma stock de todas las tallas
         return {"template": tmpl,
                 "colors": sorted(colors.values(), key=lambda c: c["color"])}
 
