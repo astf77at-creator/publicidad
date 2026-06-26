@@ -105,7 +105,35 @@ function setRefEstado(msg, cls) {
 function resetVerificacion() {
   verificado = null;
   $("enviar").disabled = true;
+  const wrap = $("color-wrap");
+  if (wrap) { wrap.hidden = true; $("color").innerHTML = ""; }
 }
+
+// Carga los colores (variantes) del producto verificado. Si tiene colores,
+// muestra el selector y EXIGE elegir uno antes de generar; si no tiene, deja
+// generar a nivel plantilla (comportamiento anterior).
+async function loadColors(code) {
+  const wrap = $("color-wrap"), sel = $("color");
+  wrap.hidden = true; sel.innerHTML = "";
+  try {
+    const data = await api(`/reference/variants?code=${encodeURIComponent(code)}`);
+    const colors = (data && data.colors) || [];
+    if (!colors.length) { $("enviar").disabled = false; return; }
+    sel.insertAdjacentHTML("beforeend", `<option value="">Elige color…</option>`);
+    for (const c of colors) {
+      sel.insertAdjacentHTML("beforeend",
+        `<option value="${c.variant_ids.join(",")}">${esc(c.color)}</option>`);
+    }
+    wrap.hidden = false;
+    $("enviar").disabled = true;   // exige elegir color
+  } catch (e) {
+    $("enviar").disabled = false;  // si falla, no bloquea (genera a plantilla)
+  }
+}
+
+$("color").addEventListener("change", () => {
+  $("enviar").disabled = !$("color").value;
+});
 
 async function verificarReferencia() {
   const code = $("referencia").value.trim();
@@ -122,7 +150,7 @@ async function verificarReferencia() {
     const prod = await r.json();
     verificado = prod;
     setRefEstado("✓ " + (prod.name || prod.default_code), "ok");
-    $("enviar").disabled = false;
+    await loadColors(prod.default_code);   // muestra selector de color si aplica
   } catch (err) {
     setRefEstado("❌ " + err.message, "error");
   }
@@ -216,12 +244,22 @@ $("form").addEventListener("submit", async (e) => {
     return;
   }
 
+  // Si el producto tiene colores, exige elegir uno y manda sus variantes.
+  const colorWrap = $("color-wrap");
+  if (colorWrap && !colorWrap.hidden && !$("color").value) {
+    setRefEstado("Elige el color antes de generar.", "error");
+    return;
+  }
+
   const fd = new FormData();
   fd.append("reference_id", verificado.id);
   fd.append("tipo", $("tipo").value);
   fd.append("descripcion", verificado.name || verificado.default_code);
   fd.append("frente", $("frente").files[0]);
   fd.append("trasero", $("trasero").files[0]);
+  if (colorWrap && !colorWrap.hidden && $("color").value) {
+    fd.append("variant_ids", $("color").value);
+  }
 
   const prog = $("progreso"), relleno = $("barra-relleno"), ptxt = $("progreso-txt");
   // Estado de progreso + estimación de tiempo restante (ETA).

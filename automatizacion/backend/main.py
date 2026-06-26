@@ -94,6 +94,19 @@ def reference_suggest(code: str, _emp: dict = Depends(require_pin)):
     return get_odoo().suggest_references(code)
 
 
+@app.get("/api/reference/variants")
+def reference_variants(code: str, _emp: dict = Depends(require_pin)):
+    """Colores (variantes) del producto de esa referencia.
+
+    {template, colors:[{color, variant_ids:[...]}]}. colors vacío si el producto
+    no tiene atributo de color (entonces se genera a nivel plantilla).
+    """
+    data = get_odoo().get_color_variants(code)
+    if not data:
+        raise HTTPException(404, "Referencia no encontrada")
+    return data
+
+
 # ========================================================================
 #  COLA DE TRABAJOS
 #  Un worker pool con concurrencia limitada procesa los trabajos en segundo
@@ -126,7 +139,8 @@ def _prune(max_age: float = 7200) -> None:
 
 
 def _process_job(job_id: str, reference_id: int, tipo: str,
-                 descripcion: str, refs: list[bytes]) -> None:
+                 descripcion: str, refs: list[bytes],
+                 variant_ids: list[int] | None = None) -> None:
     """Trabajo pesado (corre en un hilo del pool): OpenAI + WEBP + Odoo."""
     poses = poses_for(tipo, settings.poses_por_producto)
     total = len(poses)
@@ -149,7 +163,11 @@ def _process_job(job_id: str, reference_id: int, tipo: str,
 
         _update(job_id, etapa="Subiendo imágenes a Odoo…")
         odoo = get_odoo()
-        odoo.set_product_images(reference_id, webps)
+        if variant_ids:
+            # Imágenes asignadas a las variantes del color elegido.
+            odoo.set_variant_images(reference_id, variant_ids, webps)
+        else:
+            odoo.set_product_images(reference_id, webps)
         if settings.odoo_tag_review:
             odoo.add_tag(reference_id, settings.odoo_tag_review,
                          color=settings.odoo_tag_review_color)
@@ -170,6 +188,7 @@ async def create_job(
     descripcion: str = Form(...),
     frente: UploadFile = File(...),
     trasero: UploadFile = File(...),
+    variant_ids: str = Form(default=""),
     emp: dict = Depends(require_pin),
 ):
     """Encola un trabajo y responde de inmediato con su job_id."""
@@ -179,6 +198,9 @@ async def create_job(
     refs = [await frente.read(), await trasero.read()]
     if not all(refs):
         raise HTTPException(400, "Faltan las dos fotos (frente y trasero).")
+
+    # Variantes del color elegido (vacío = producto sin variantes de color).
+    vids = [int(x) for x in variant_ids.split(",") if x.strip().isdigit()]
 
     _prune()
     job_id = uuid4().hex
@@ -198,7 +220,7 @@ async def create_job(
             "creado": now,
             "actualizado": now,
         }
-    _executor.submit(_process_job, job_id, reference_id, tipo, descripcion, refs)
+    _executor.submit(_process_job, job_id, reference_id, tipo, descripcion, refs, vids)
     return {"job_id": job_id, "estado": "en_cola"}
 
 

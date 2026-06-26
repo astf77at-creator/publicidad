@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     odoo_category_field: str = "categ_id"
     odoo_brand_field: str = "product_brand_id"
     odoo_reference_field: str = "default_code"
+    # Nombre del atributo de color en las variantes (para asignar imágenes por
+    # color). Se compara sin distinguir mayúsculas; "Color" cubre lo habitual.
+    odoo_color_attribute: str = "Color"
     odoo_published_field: str = "is_published"
     odoo_tag_review: str = "Revisión de imágenes"
     # Color de la etiqueta de revisión. El widget de Odoo pinta por ÍNDICE de

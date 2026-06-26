@@ -226,6 +226,83 @@ class OdooClient:
         return [{"id": r["id"], "name": r.get("name"),
                  "default_code": r.get(field)} for r in recs]
 
+    # ---- variantes de color (para asignar imágenes por color) ----
+    def get_color_variants(self, code: str) -> dict | None:
+        """Resuelve el producto por referencia y agrupa sus variantes por COLOR.
+
+        Devuelve {"template": {...}, "colors": [{"color", "variant_ids":[...]}]}.
+        Si el producto no tiene atributo de color, "colors" viene vacío y el
+        flujo cae al nivel de plantilla (comportamiento anterior).
+        """
+        tmpl = self.lookup_reference(code)
+        if not tmpl:
+            return None
+        variants = self.execute(
+            "product.product", "search_read",
+            [["product_tmpl_id", "=", tmpl["id"]]],
+            fields=["id", "product_template_attribute_value_ids"],
+        )
+        val_ids = sorted({v for r in variants
+                          for v in r.get("product_template_attribute_value_ids", [])})
+        val_map: dict[int, dict] = {}
+        if val_ids:
+            for v in self.execute(
+                "product.template.attribute.value", "read", val_ids,
+                fields=["id", "name", "attribute_id"],
+            ):
+                val_map[v["id"]] = v
+        wanted = (settings.odoo_color_attribute or "color").lower()
+        colors: dict[str, dict] = {}
+        for r in variants:
+            color_name = None
+            for vid in r.get("product_template_attribute_value_ids", []):
+                v = val_map.get(vid)
+                attr = v.get("attribute_id") if v else None
+                if (v and isinstance(attr, (list, tuple)) and len(attr) == 2
+                        and wanted in (attr[1] or "").lower()):
+                    color_name = v.get("name")
+                    break
+            if color_name is None:
+                continue   # variante sin color: no se ofrece en el selector
+            colors.setdefault(color_name, {"color": color_name, "variant_ids": []})
+            colors[color_name]["variant_ids"].append(r["id"])
+        return {"template": tmpl,
+                "colors": sorted(colors.values(), key=lambda c: c["color"])}
+
+    def set_variant_images(self, template_id: int, variant_ids: list[int],
+                           images_png: list[bytes]) -> None:
+        """Asigna las imágenes a TODAS las variantes dadas (las de un color).
+
+        - image_1920 (principal) en cada variante.
+        - product.image extra (con product_variant_id) por cada variante.
+        - Fija la miniatura de la PLANTILLA si está vacía (imagen por defecto).
+        """
+        if not images_png or not variant_ids:
+            return
+        principal = base64.b64encode(images_png[0]).decode()
+        for vid in variant_ids:
+            self.execute("product.product", "write", [vid], {"image_1920": principal})
+
+        tmpl = self.execute("product.template", "read", [template_id],
+                            fields=["image_1920"])
+        if tmpl and not tmpl[0].get("image_1920"):
+            self.execute("product.template", "write", [template_id],
+                         {"image_1920": principal})
+
+        extras = images_png[1:]
+        if extras and not self.has_model("product.image"):
+            log.warning("product.image no existe (sin website_sale): solo imagen "
+                        "principal en variantes; se omiten %d extras.", len(extras))
+            return
+        for vid in variant_ids:
+            for idx, img in enumerate(extras, start=1):
+                self.execute("product.image", "create", {
+                    "name": f"pose-{idx}",
+                    "image_1920": base64.b64encode(img).decode(),
+                    "product_tmpl_id": template_id,
+                    "product_variant_id": vid,
+                })
+
     # ---- autenticación por PIN (mismo esquema que el lanzador me.yoohoo.mx) ----
     def find_employee_by_pin(self, pin: str) -> dict | None:
         """Devuelve {id, name} del empleado cuyo PIN de checador coincide, o None.
