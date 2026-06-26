@@ -299,14 +299,16 @@ class OdooClient:
             log.warning("product.image no existe (sin website_sale): solo imagen "
                         "principal en variantes; se omiten %d extras.", len(extras))
             return
-        for vid in variant_ids:
-            for idx, img in enumerate(extras, start=1):
-                self.execute("product.image", "create", {
-                    "name": f"pose-{idx}",
-                    "image_1920": base64.b64encode(img).decode(),
-                    "product_tmpl_id": template_id,
-                    "product_variant_id": vid,
-                })
+        # Galería extra UNA sola vez, en una variante representativa del color.
+        # (Si se creara en cada talla, saldrían las imágenes triplicadas.)
+        rep = variant_ids[0]
+        for idx, img in enumerate(extras, start=1):
+            self.execute("product.image", "create", {
+                "name": f"pose-{idx}",
+                "image_1920": base64.b64encode(img).decode(),
+                "product_tmpl_id": template_id,
+                "product_variant_id": rep,
+            })
 
     # ---- autenticación por PIN (mismo esquema que el lanzador me.yoohoo.mx) ----
     def find_employee_by_pin(self, pin: str) -> dict | None:
