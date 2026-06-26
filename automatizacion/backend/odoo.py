@@ -258,8 +258,11 @@ class OdooClient:
             for vid in r.get("product_template_attribute_value_ids", []):
                 v = val_map.get(vid)
                 attr = v.get("attribute_id") if v else None
-                if (v and isinstance(attr, (list, tuple)) and len(attr) == 2
-                        and wanted in (attr[1] or "").lower()):
+                if not (v and isinstance(attr, (list, tuple)) and len(attr) == 2):
+                    continue
+                attr_name = (attr[1] or "").lower()
+                # Acepta "Color", "Colour", "Colores"… y el nombre configurado.
+                if "colo" in attr_name or wanted in attr_name:
                     color_name = v.get("name")
                     break
             if color_name is None:
