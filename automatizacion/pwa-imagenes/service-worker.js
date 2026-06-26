@@ -1,6 +1,6 @@
 // Service worker: shell instalable, pero el HTML se sirve SIEMPRE desde la red
 // (network-first) para no quedar atrapado en un index.html viejo cacheado.
-const CACHE = "imagenes-v7";
+const CACHE = "imagenes-v8";   // v8: selector de color (fuerza recarga de app.js)
 const SHELL = ["./", "index.html", "styles.css", "app.js", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
