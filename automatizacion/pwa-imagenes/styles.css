@@ -8,6 +8,7 @@ form{display:flex;flex-direction:column;gap:18px;}
 fieldset{border:1px solid #cbd5e1;border-radius:12px;padding:16px;background:#fff;}
 legend{font-weight:700;color:var(--azul);padding:0 6px;}
 label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;margin-top:10px;}
+label[hidden]{display:none;}   /* el atributo hidden debe ocultar (si no, sale el selector de color vacío) */
 select,input[type=file]{padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;background:#fff;}
 select:disabled{background:var(--claro);color:#94a3b8;}
 .fotos{display:grid;grid-template-columns:1fr;gap:12px;}
