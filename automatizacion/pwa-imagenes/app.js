@@ -114,10 +114,11 @@ function resetVerificacion() {
 // generar a nivel plantilla (comportamiento anterior).
 async function loadColors(code) {
   const wrap = $("color-wrap"), sel = $("color");
-  wrap.hidden = true; sel.innerHTML = "";
+  wrap.hidden = true;
   try {
     const data = await api(`/reference/variants?code=${encodeURIComponent(code)}`);
     const colors = (data && data.colors) || [];
+    sel.innerHTML = "";            // limpiar AQUÍ (tras el fetch) evita lista duplicada
     if (!colors.length) { $("enviar").disabled = false; return; }
     sel.insertAdjacentHTML("beforeend", `<option value="">Elige color…</option>`);
     for (const c of colors) {
@@ -127,6 +128,7 @@ async function loadColors(code) {
     wrap.hidden = false;
     $("enviar").disabled = true;   // exige elegir color
   } catch (e) {
+    sel.innerHTML = "";
     $("enviar").disabled = false;  // si falla, no bloquea (genera a plantilla)
   }
 }
