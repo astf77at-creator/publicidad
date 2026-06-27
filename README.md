@@ -1,10 +1,21 @@
-# Flyer publicitario — App
+# Publicidad y marketing — YooHoo
 
-Flyer publicitario en HTML/CSS para invitar a los clientes a descargar y usar nuestra app.
+Proyecto para crear **anuncios y marketing de YooHoo** (moda para dama), trabajando
+**en la nube y desde el celular**, sin depender de la PC.
 
-## Archivo
+## Cómo funciona (en la nube, desde el celular)
 
-- `flyer.html` — flyer autocontenido (sin dependencias), tamaño A4, listo para imprimir o exportar a PDF.
+1. La identidad de la marca vive en [`MARCA-YOOHOO.md`](MARCA-YOOHOO.md) — fuente única
+   de verdad para que todo anuncio salga consistente.
+2. Los anuncios se crean en **Canva** (100% en la nube, editables desde el celular).
+3. Desde Claude Code en la web (en tu celular) pides: *"haz un anuncio de YooHoo para
+   [promoción/producto]"* → se genera el diseño en tu cuenta de Canva.
+4. Abres Canva en el celular, ajustas foto/texto y publicas.
+
+## Archivos
+
+- [`MARCA-YOOHOO.md`](MARCA-YOOHOO.md) — guía de marca (colores, contacto, tono, tallas, CTAs).
+- `flyer.html` — plantilla de flyer autocontenida (A4) como referencia para imprimir/exportar a PDF.
 
 ## Cómo personalizarlo
 
