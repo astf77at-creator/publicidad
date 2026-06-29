@@ -91,7 +91,7 @@ async function init() {
 }
 
 // --- verificación por referencia exacta (SKU) ---
-// Producto resuelto: solo se permite generar cuando esto está poblado y
+// Producto resuelto: solo se permite añadir cuando esto está poblado y
 // coincide con el texto actual del campo.
 let verificado = null;   // { id, name, default_code } | null
 
@@ -110,8 +110,8 @@ function resetVerificacion() {
 }
 
 // Carga los colores (variantes) del producto verificado. Si tiene colores,
-// muestra el selector y EXIGE elegir uno antes de generar; si no tiene, deja
-// generar a nivel plantilla (comportamiento anterior).
+// muestra el selector y EXIGE elegir uno antes de añadir; si no tiene, deja
+// añadir a nivel plantilla (comportamiento anterior).
 async function loadColors(code) {
   const wrap = $("color-wrap"), sel = $("color");
   wrap.hidden = true;
@@ -131,7 +131,7 @@ async function loadColors(code) {
     $("enviar").disabled = true;   // exige elegir color
   } catch (e) {
     sel.innerHTML = "";
-    $("enviar").disabled = false;  // si falla, no bloquea (genera a plantilla)
+    $("enviar").disabled = false;  // si falla, no bloquea (añade a plantilla)
   }
 }
 
@@ -236,24 +236,119 @@ $("referencia").addEventListener("input", () => {
   }, 250);
 });
 
-// --- envío ---
+// ======================================================================
+//  COLA DE GENERACIÓN
+//  El usuario captura un flujo (fotos + tipo + referencia + color) y lo
+//  AÑADE a la cola; el formulario se limpia para el siguiente. El backend
+//  procesa los trabajos en segundo plano (2 a la vez). Aquí mostramos una
+//  tarjeta por trabajo con barra de progreso y consultamos su estado.
+// ======================================================================
+const MAX_COLA = 20;          // máximo de trabajos en proceso/espera a la vez
+const cola = [];              // {job_id, estado, el, relleno, estadoEl}
+let poller = null;
+
+function jobsActivos() {
+  return cola.filter((j) => j.estado === "en_cola" || j.estado === "procesando");
+}
+
+function renderColaHead() {
+  const act = jobsActivos().length;
+  $("cola-head").textContent =
+    `Cola de generación · ${act} en proceso/espera · ${cola.length} en total`;
+}
+
+function addJobCard(job_id, label) {
+  $("cola").hidden = false;
+  const card = document.createElement("div");
+  card.className = "job";
+  card.dataset.id = job_id;
+  card.innerHTML =
+    `<div class="job-top"><span class="job-label">${esc(label)}</span>` +
+    `<span class="job-estado">En cola…</span></div>` +
+    `<div class="barra"><div class="relleno indeterminada"></div></div>`;
+  $("cola-lista").prepend(card);                       // el más nuevo arriba
+  cola.push({
+    job_id, estado: "en_cola", el: card,
+    relleno: card.querySelector(".relleno"),
+    estadoEl: card.querySelector(".job-estado"),
+  });
+  renderColaHead();
+}
+
+function startPoller() {
+  if (poller) return;
+  poller = setInterval(async () => {
+    const act = jobsActivos();
+    if (!act.length) { clearInterval(poller); poller = null; renderColaHead(); return; }
+    for (const j of act) {
+      let job;
+      try { job = await api(`/jobs/${j.job_id}`); } catch (e) { continue; }
+      j.estado = job.estado;
+      if (job.estado === "en_cola") {
+        j.relleno.classList.add("indeterminada");
+        j.estadoEl.textContent = "En cola…";
+      } else if (job.estado === "procesando") {
+        if (/subiendo/i.test(job.etapa || "")) {
+          j.relleno.classList.add("indeterminada");
+          j.estadoEl.textContent = "Subiendo a Odoo…";
+        } else {
+          j.relleno.classList.remove("indeterminada");
+          const total = job.total || 0, done = job.done || 0;
+          j.relleno.style.width = (total ? Math.round((done / total) * 100) : 0) + "%";
+          j.estadoEl.textContent = `Generando ${done}/${total}`;
+        }
+      } else if (job.estado === "listo") {
+        j.relleno.classList.remove("indeterminada");
+        j.relleno.style.width = "100%";
+        j.el.classList.add("ok");
+        j.estadoEl.textContent = `✅ Listo (${job.imagenes || 0})`;
+      } else if (job.estado === "error") {
+        j.relleno.classList.remove("indeterminada");
+        j.el.classList.add("error");
+        j.estadoEl.textContent = "❌ " + (job.detail || "Error");
+      }
+    }
+    renderColaHead();
+  }, 2000);
+}
+
+function resetForm() {
+  $("frente").value = "";
+  $("trasero").value = "";
+  $("prev-frente").classList.remove("show");
+  $("prev-trasero").classList.remove("show");
+  $("referencia").value = "";
+  $("ref-estado").hidden = true;
+  resetVerificacion();   // limpia verificado + color y deshabilita el botón
+}
+
+// --- añadir a la cola ---
 $("form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const estado = $("estado");
   const btn = $("enviar");
 
   if (!verificado || $("referencia").value.trim() !== verificado.default_code) {
-    setRefEstado("Verifica la referencia antes de generar.", "error");
+    setRefEstado("Verifica la referencia antes de añadir.", "error");
     resetVerificacion();
     return;
   }
-
-  // Si el producto tiene colores, exige elegir uno y manda sus variantes.
   const colorWrap = $("color-wrap");
-  if (colorWrap && !colorWrap.hidden && !$("color").value) {
-    setRefEstado("Elige el color antes de generar.", "error");
+  const tieneColor = colorWrap && !colorWrap.hidden;
+  if (tieneColor && !$("color").value) {
+    setRefEstado("Elige el color antes de añadir.", "error");
     return;
   }
+  if (!$("frente").files[0] || !$("trasero").files[0]) {
+    setRefEstado("Faltan las dos fotos (frente y trasero).", "error");
+    return;
+  }
+  if (jobsActivos().length >= MAX_COLA) {
+    setRefEstado(`La cola está llena (${MAX_COLA}). Espera a que terminen algunos.`, "error");
+    return;
+  }
+
+  const colorTxt = tieneColor ? (" · " + (($("color").selectedOptions[0] || {}).text || "")) : "";
+  const label = (verificado.default_code || verificado.name) + colorTxt;
 
   const fd = new FormData();
   fd.append("reference_id", verificado.id);
@@ -261,104 +356,25 @@ $("form").addEventListener("submit", async (e) => {
   fd.append("descripcion", verificado.name || verificado.default_code);
   fd.append("frente", $("frente").files[0]);
   fd.append("trasero", $("trasero").files[0]);
-  if (colorWrap && !colorWrap.hidden && $("color").value) {
-    fd.append("variant_ids", $("color").value);
-  }
-
-  const prog = $("progreso"), relleno = $("barra-relleno"), ptxt = $("progreso-txt");
-  // Estado de progreso + estimación de tiempo restante (ETA).
-  let t0 = 0, label = "Preparando…", eta = null, tick = null;
-  const SEG_POR_POSE = 30;   // estimación inicial por pose, hasta medir la 1ª
-
-  function fmtEta(s) {
-    if (s == null) return "";
-    if (s <= 1) return "casi listo…";
-    if (s < 60) return `~${Math.round(s)} s restantes`;
-    return `~${Math.ceil(s / 60)} min restantes`;
-  }
-  function render() {
-    ptxt.textContent = eta != null ? `${label} · ${fmtEta(eta)}` : label;
-  }
-  function setBar(done, total) {
-    relleno.classList.remove("indeterminada");
-    relleno.style.width = (total ? Math.round((done / total) * 100) : 0) + "%";
-  }
-  function startTick() {
-    clearInterval(tick);
-    tick = setInterval(() => {        // cuenta regresiva suave entre poses
-      if (eta != null && eta > 1) { eta -= 1; render(); }
-    }, 1000);
-  }
-  function stopTick() { clearInterval(tick); tick = null; }
+  if (tieneColor && $("color").value) fd.append("variant_ids", $("color").value);
 
   btn.disabled = true;
-  estado.hidden = true;
-  prog.hidden = false;
-  relleno.classList.remove("indeterminada");
-  relleno.style.width = "0%";
-  render();
-
   try {
-    // 1) Encolar el trabajo: el backend responde de inmediato con un job_id.
     const res = await authFetch("/jobs", { method: "POST", body: fd });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
       throw new Error(d.detail || `Error ${res.status}`);
     }
     const { job_id } = await res.json();
-
-    // El trabajo se procesa en el SERVIDOR (cola). Aunque cierres la página,
-    // sigue su curso. Aquí solo consultamos el estado periódicamente.
-    label = "En cola…"; eta = null;
-    relleno.classList.add("indeterminada");
-    render();
-
-    let result = null;
-    for (;;) {
-      await new Promise((r) => setTimeout(r, 1500));
-      let job;
-      try { job = await api(`/jobs/${job_id}`); }
-      catch (e) { continue; }   // reintenta ante fallos puntuales de red
-
-      if (job.estado === "en_cola") {
-        relleno.classList.add("indeterminada");
-        label = "En cola…"; eta = null; render();
-      } else if (job.estado === "procesando") {
-        if (!t0) t0 = Date.now();
-        const total = job.total || 0, done = job.done || 0;
-        if (job.etapa && /subiendo/i.test(job.etapa)) {
-          relleno.classList.add("indeterminada");
-          label = "Subiendo imágenes a Odoo…"; eta = null; render();
-        } else {
-          setBar(done, total);
-          label = `Generando imágenes… ${done} de ${total}`;
-          if (done > 0) {
-            const porPose = ((Date.now() - t0) / 1000) / done;
-            eta = done >= total ? null : Math.round(porPose * (total - done));
-          }
-          render();
-        }
-      } else if (job.estado === "listo") {
-        result = job; break;
-      } else if (job.estado === "error") {
-        throw new Error(job.detail || "Error generando imágenes");
-      }
-    }
-
-    relleno.classList.remove("indeterminada");
-    relleno.style.width = "100%";
-    prog.hidden = true;
+    addJobCard(job_id, label);
+    startPoller();
+    resetForm();
+    const estado = $("estado");
     estado.hidden = false;
     estado.className = "estado ok";
-    estado.textContent = `✅ Listo: ${result.imagenes} imágenes subidas al producto. ` +
-      `Etiqueta "Revisión de imágenes" añadida en Odoo.`;
+    estado.textContent = "✅ Añadido a la cola. Captura el siguiente.";
   } catch (err) {
-    prog.hidden = true;
-    estado.hidden = false;
-    estado.className = "estado error";
-    estado.textContent = "❌ " + err.message;
-  } finally {
-    stopTick();
+    setRefEstado("❌ " + err.message, "error");
     btn.disabled = false;
   }
 });

@@ -45,3 +45,14 @@ button:disabled{opacity:.5;cursor:not-allowed;}
 .fn{color:var(--gris);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .faltantes-msg{padding:16px;text-align:center;color:var(--gris);font-size:14px;}
 .faltantes-msg.error{color:#991b1b;}
+
+/* --- cola de generación --- */
+.cola{margin-top:18px;}
+.cola-head{font-weight:700;color:var(--azul);margin-bottom:8px;font-size:14px;}
+.cola-lista{display:flex;flex-direction:column;gap:10px;}
+.job{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;}
+.job.ok{border-color:#16a34a;background:#f0fdf4;}
+.job.error{border-color:#dc2626;background:#fef2f2;}
+.job-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px;}
+.job-label{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.job-estado{color:var(--gris);white-space:nowrap;}

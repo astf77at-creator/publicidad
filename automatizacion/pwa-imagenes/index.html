@@ -59,15 +59,16 @@
         </label>
       </fieldset>
 
-      <button type="submit" id="enviar" disabled>Generar imágenes</button>
+      <button type="submit" id="enviar" disabled>➕ Añadir a la cola</button>
     </form>
 
-    <div id="progreso" class="progreso" hidden>
-      <div class="barra"><div class="relleno" id="barra-relleno"></div></div>
-      <div class="progreso-txt" id="progreso-txt"></div>
-    </div>
-
     <div id="estado" class="estado" hidden></div>
+
+    <!-- Cola de generación: un trabajo por flujo, con barra de progreso -->
+    <section id="cola" class="cola" hidden>
+      <div class="cola-head" id="cola-head">Cola de generación</div>
+      <div class="cola-lista" id="cola-lista"></div>
+    </section>
   </main>
   <script src="app.js"></script>
 </body>
