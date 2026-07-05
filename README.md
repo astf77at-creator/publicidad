@@ -2,9 +2,16 @@
 
 Flyer publicitario en HTML/CSS para invitar a los clientes a descargar y usar nuestra app.
 
-## Archivo
+## Archivos
 
 - `flyer.html` — flyer autocontenido (sin dependencias), tamaño A4, listo para imprimir o exportar a PDF.
+- `descripciones-de-puesto.html` — manual de **descripciones de puesto** de YOOHOO Store (Vendedor, Gerente, Compras/Planeación, Inventario y Atención por WhatsApp). Autocontenido, A4, una hoja por puesto, listo para imprimir o exportar a PDF.
+
+### Descripciones de puesto
+
+`descripciones-de-puesto.html` documenta los perfiles del equipo con base en cómo opera YOOHOO Store (POS de Odoo, nómina con comisiones y bonos, reloj checador con geocerca, módulo de Presupuestos e inventario). Cada puesto incluye objetivo, funciones, sistemas que utiliza, esquema de compensación e indicadores (KPIs).
+
+Para personalizarlo, abre el archivo y ajusta nombres, sueldos base y funciones según tu operación real. Exporta igual que el flyer: `Ctrl/Cmd + P` → **Guardar como PDF** (A4, márgenes "Ninguno", activar "Gráficos de fondo").
 
 ## Cómo personalizarlo
 
