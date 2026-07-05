@@ -1,0 +1,512 @@
+<meta charset="utf-8">
+<title>YOOHOO Store · Descripciones de Puesto</title>
+<style>
+  :root{
+    --tinta:#1a1130;
+    --tinta-2:#4a3d63;
+    --marca:#7b2ff7;
+    --marca-2:#f72fb0;
+    --acento:#ff8a3d;
+    --suave:#f4f0fb;
+    --linea:#e4dcf3;
+    --ok:#1a9d6a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",Roboto,-apple-system,Helvetica,Arial,sans-serif;
+    color:var(--tinta);
+    background:#eae4f5;
+    line-height:1.5;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  /* Cada hoja es una página A4 */
+  .hoja{
+    width:210mm;
+    min-height:297mm;
+    margin:14px auto;
+    background:#fff;
+    padding:20mm 18mm;
+    box-shadow:0 8px 30px rgba(40,20,80,.18);
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* ---------- Portada ---------- */
+  .portada{
+    background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(247,47,176,.35), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(255,138,61,.35), transparent 60%),
+      linear-gradient(150deg,#2a0f52 0%,#5a1fb0 55%,#8a2be2 100%);
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .portada .logo{
+    font-size:64px;font-weight:800;letter-spacing:2px;line-height:1;
+    text-shadow:0 3px 20px rgba(0,0,0,.25);
+  }
+  .portada .logo span{color:var(--acento)}
+  .portada .tag{opacity:.9;font-size:15px;letter-spacing:6px;text-transform:uppercase;margin-top:6px}
+  .portada h1{font-size:44px;line-height:1.05;margin:48px 0 10px}
+  .portada .sub{font-size:18px;opacity:.92;max-width:46ch}
+  .portada .meta{margin-top:auto;padding-top:40px;font-size:13px;opacity:.85;border-top:1px solid rgba(255,255,255,.25)}
+  .portada .meta b{opacity:1}
+  .pill{
+    display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    padding:5px 12px;border-radius:999px;font-size:12px;margin:4px 6px 0 0;
+  }
+
+  /* ---------- Índice ---------- */
+  .indice ol{list-style:none;counter-reset:i;padding:0;margin:18px 0 0}
+  .indice li{
+    counter-increment:i;display:flex;align-items:center;gap:14px;
+    padding:14px 16px;border:1px solid var(--linea);border-radius:12px;margin-bottom:10px;background:var(--suave);
+  }
+  .indice li::before{
+    content:counter(i,decimal-leading-zero);
+    font-weight:800;color:#fff;background:linear-gradient(135deg,var(--marca),var(--marca-2));
+    width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:15px;flex:none;
+  }
+  .indice .t{font-weight:700;font-size:16px}
+  .indice .d{color:var(--tinta-2);font-size:13px}
+
+  /* ---------- Encabezado de puesto ---------- */
+  .cab{display:flex;align-items:flex-start;gap:16px;border-bottom:3px solid var(--marca);padding-bottom:14px;margin-bottom:6px}
+  .cab .num{
+    font-weight:800;color:#fff;background:linear-gradient(135deg,var(--marca),var(--marca-2));
+    min-width:52px;height:52px;padding:0 8px;border-radius:12px;display:grid;place-items:center;font-size:20px;flex:none;
+  }
+  .cab h2{margin:0;font-size:26px;line-height:1.1}
+  .cab .area{color:var(--tinta-2);font-size:13px;letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+
+  h3{
+    font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--marca);
+    margin:22px 0 8px;display:flex;align-items:center;gap:8px;
+  }
+  h3::before{content:"";width:16px;height:3px;background:var(--acento);border-radius:3px}
+
+  p{margin:6px 0}
+  .lead{font-size:15.5px;color:var(--tinta-2);background:var(--suave);border-left:4px solid var(--marca);padding:12px 16px;border-radius:0 10px 10px 0}
+
+  /* Ficha de datos */
+  .ficha{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin-top:14px}
+  .ficha .campo{border-bottom:1px dotted var(--linea);padding-bottom:6px}
+  .ficha .k{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--tinta-2)}
+  .ficha .v{font-weight:700;font-size:14px}
+
+  ul.func{margin:6px 0;padding:0;list-style:none}
+  ul.func li{position:relative;padding:6px 0 6px 26px;border-bottom:1px solid var(--linea);font-size:14px}
+  ul.func li:last-child{border-bottom:none}
+  ul.func li::before{
+    content:"";position:absolute;left:4px;top:12px;width:8px;height:8px;border-radius:50%;
+    background:linear-gradient(135deg,var(--marca),var(--marca-2));
+  }
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .chips span{
+    display:inline-block;background:var(--suave);border:1px solid var(--linea);
+    padding:5px 11px;border-radius:8px;font-size:12.5px;margin:0 6px 6px 0;font-weight:600;
+  }
+  .chips .sis{background:#eef7ff;border-color:#cfe6ff}
+  .kpi{display:grid;grid-template-columns:1fr;gap:8px}
+  .kpi div{display:flex;gap:10px;align-items:baseline;font-size:13.5px;padding:7px 12px;background:var(--suave);border-radius:8px}
+  .kpi b{color:var(--marca);white-space:nowrap}
+
+  .comp{background:linear-gradient(135deg,#faf6ff,#fff);border:1px solid var(--linea);border-radius:12px;padding:14px 16px;margin-top:8px}
+  .comp .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--linea);font-size:14px}
+  .comp .row:last-child{border-bottom:none;font-weight:800;font-size:15px;color:var(--tinta)}
+  .nota{font-size:12px;color:var(--tinta-2);margin-top:8px;font-style:italic}
+
+  .pie{position:absolute;left:18mm;right:18mm;bottom:12mm;display:flex;justify-content:space-between;
+    font-size:11px;color:var(--tinta-2);border-top:1px solid var(--linea);padding-top:8px}
+  .pie b{color:var(--marca)}
+
+  .firma{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:26px}
+  .firma div{border-top:1.5px solid var(--tinta);padding-top:8px;font-size:12px;text-align:center;color:var(--tinta-2)}
+
+  @media print{
+    body{background:#fff}
+    .hoja{margin:0;box-shadow:none;width:auto;min-height:auto;page-break-after:always}
+    .hoja:last-child{page-break-after:auto}
+    @page{size:A4;margin:0}
+  }
+  @media(max-width:760px){
+    .hoja{width:auto;padding:24px}
+    .ficha,.cols{grid-template-columns:1fr}
+    .portada h1{font-size:34px}.portada .logo{font-size:48px}
+  }
+</style>
+
+<!-- ===================== PORTADA ===================== -->
+<section class="hoja portada">
+  <div class="logo">YOO<span>·</span>HOO</div>
+  <div class="tag">Store · Moda</div>
+
+  <h1>Descripciones<br>de Puesto</h1>
+  <p class="sub">Manual de perfiles y responsabilidades del equipo de trabajo. Documento interno de organización y recursos humanos.</p>
+
+  <div style="margin-top:22px">
+    <span class="pill">Vendedor(a) de Tienda</span>
+    <span class="pill">Gerente de Tienda</span>
+    <span class="pill">Compras y Planeación</span>
+    <span class="pill">Inventario</span>
+    <span class="pill">Atención a Clientes</span>
+  </div>
+
+  <div class="meta">
+    <b>YOO HOO Store</b> — República de Venezuela 83, Col. Centro, Cuauhtémoc, 06020, CDMX &nbsp;·&nbsp; WhatsApp 729 836 1124 &nbsp;·&nbsp; yoohoo.mx<br>
+    Versión 1.0 · Julio 2026 · Elaborado por la Administración
+  </div>
+</section>
+
+<!-- ===================== ÍNDICE ===================== -->
+<section class="hoja indice">
+  <div class="cab">
+    <div class="num">☰</div>
+    <div>
+      <h2>Índice de puestos</h2>
+      <div class="area">Estructura del equipo YOOHOO Store</div>
+    </div>
+  </div>
+
+  <p class="lead">Cada puesto se describe en una hoja independiente: objetivo, funciones, sistemas que utiliza, esquema de compensación e indicadores de desempeño. Las hojas están listas para imprimir o exportar a PDF.</p>
+
+  <ol>
+    <li><div><div class="t">Vendedor(a) de Tienda / Cajero(a) POS</div><div class="d">Atención en piso, venta y cobro en punto de venta. Es el motor de ingresos de la tienda.</div></div></li>
+    <li><div><div class="t">Gerente / Administrador de Tienda</div><div class="d">Dirección de la operación diaria, personal, ventas y sistemas. Máxima autoridad en tienda.</div></div></li>
+    <li><div><div class="t">Comprador(a) / Planeador(a) Comercial</div><div class="d">Surtido, presupuesto de compra (OTB) y monitoreo comercial en el módulo Presupuestos.</div></div></li>
+    <li><div><div class="t">Encargado(a) de Inventario</div><div class="d">Recepción de mercancía, conteos, cuadre de existencias y control de merma.</div></div></li>
+    <li><div><div class="t">Atención al Cliente por WhatsApp</div><div class="d">Ventas y servicio por WhatsApp, apoyado en el asistente automatizado "Isabela".</div></div></li>
+  </ol>
+
+  <p style="margin-top:18px;font-size:13px;color:var(--tinta-2)">
+    <b>Nota organizacional:</b> en tiendas pequeñas una misma persona puede cubrir más de un puesto (por ejemplo, un vendedor senior que también apoya en inventario). Estas descripciones definen las <i>funciones</i>; la asignación de personas a funciones la determina la Administración.
+  </p>
+
+  <div class="pie"><span><b>YOOHOO</b> · Descripciones de Puesto</span><span>Índice</span></div>
+</section>
+
+<!-- ===================== 1. VENDEDOR ===================== -->
+<section class="hoja">
+  <div class="cab">
+    <div class="num">01</div>
+    <div>
+      <h2>Vendedor(a) de Tienda / Cajero(a) POS</h2>
+      <div class="area">Área: Piso de venta · Punto de venta</div>
+    </div>
+  </div>
+
+  <p class="lead">Atender y asesorar a cada cliente que entra a la tienda, cerrar la venta y cobrarla correctamente en el punto de venta (POS), cuidando la imagen del piso y contribuyendo a las metas de venta del equipo.</p>
+
+  <div class="ficha">
+    <div class="campo"><div class="k">Reporta a</div><div class="v">Gerente / Administrador de Tienda</div></div>
+    <div class="campo"><div class="k">Supervisa a</div><div class="v">Ninguno</div></div>
+    <div class="campo"><div class="k">Ubicación</div><div class="v">Tienda física — Centro, CDMX</div></div>
+    <div class="campo"><div class="k">Tipo de puesto</div><div class="v">Operativo · Cara al cliente</div></div>
+  </div>
+
+  <h3>Funciones y responsabilidades</h3>
+  <ul class="func">
+    <li>Recibir, saludar y asesorar a los clientes; identificar tallas (dama 1–15) y equivalencias a letra (XS=1,3 · S=5,7 · M=9 · L=11,13 · XL=15).</li>
+    <li>Registrar cada venta en el <b>POS de Odoo</b> con el producto y cantidad correctos, y cobrar (efectivo, tarjeta o transferencia).</li>
+    <li>Levantar pedidos y apartados en la app de <b>Captura de Pedidos</b> cuando el cliente no lleva la prenda en el momento.</li>
+    <li>Mantener el piso ordenado, surtido y limpio; acomodar prendas por talla y colección, y cuidar el probador.</li>
+    <li>Marcar entrada y salida en el <b>reloj checador</b> con su PIN dentro de la tienda (control por ubicación / geocerca).</li>
+    <li>Apoyar en conteos rápidos y avisar de faltantes o descuadres para cuidar el inventario del equipo.</li>
+    <li>Consultar su avance de comisión en la pantalla <b>"Mis Comisiones"</b> y trabajar hacia su meta.</li>
+  </ul>
+
+  <div class="cols">
+    <div>
+      <h3>Sistemas y herramientas</h3>
+      <div class="chips">
+        <span class="sis">POS de Odoo</span>
+        <span class="sis">Captura de Pedidos</span>
+        <span class="sis">PWA "Mis Comisiones"</span>
+        <span class="sis">Reloj checador (PIN)</span>
+        <span>WhatsApp de tienda</span>
+      </div>
+      <h3>Perfil y competencias</h3>
+      <div class="chips">
+        <span>Actitud de servicio</span><span>Ventas</span><span>Honestidad</span>
+        <span>Manejo de efectivo</span><span>Trabajo en equipo</span><span>Puntualidad</span>
+      </div>
+    </div>
+    <div>
+      <h3>Indicadores (KPIs)</h3>
+      <div class="kpi">
+        <div><b>Venta</b> Monto vendido en el mes vs. meta</div>
+        <div><b>Ticket</b> Venta promedio y piezas por ticket</div>
+        <div><b>Asistencia</b> Puntualidad y cumplimiento de horario</div>
+        <div><b>Cuadre</b> Sin diferencias en caja e inventario</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Esquema de compensación</h3>
+  <div class="comp">
+    <div class="row"><span>Sueldo base fijo</span><span>Monto fijo mensual (ej. $10,000)</span></div>
+    <div class="row"><span>Comisión</span><span>Variable, sobre sus ventas registradas en el POS</span></div>
+    <div class="row"><span>Bono de antigüedad</span><span>Según tiempo en la empresa</span></div>
+    <div class="row"><span>Bono de puntualidad</span><span>Ligado al reloj checador</span></div>
+    <div class="row"><span>Bono colectivo</span><span>Del equipo; se reduce si hay descuadre de inventario</span></div>
+    <div class="row"><span>Percepción total</span><span>Sueldo + Comisión + Bonos</span></div>
+  </div>
+  <p class="nota">Ejemplo real de cálculo: $14,828 = $10,000 sueldo + $3,628 comisión + $828 en bonos. El recibo puede ser mayor o menor al sueldo base según la venta y los bonos del periodo.</p>
+
+  <div class="pie"><span><b>YOOHOO</b> · Descripción de Puesto</span><span>01 · Vendedor(a) de Tienda</span></div>
+</section>
+
+<!-- ===================== 2. GERENTE ===================== -->
+<section class="hoja">
+  <div class="cab">
+    <div class="num">02</div>
+    <div>
+      <h2>Gerente / Administrador de Tienda</h2>
+      <div class="area">Área: Dirección y administración</div>
+    </div>
+  </div>
+
+  <p class="lead">Dirigir la operación completa de la tienda: personal, ventas, inventario, compras y sistemas; asegurar el cumplimiento de las metas y la correcta administración del negocio.</p>
+
+  <div class="ficha">
+    <div class="campo"><div class="k">Reporta a</div><div class="v">Dirección General / Propietario</div></div>
+    <div class="campo"><div class="k">Supervisa a</div><div class="v">Todo el equipo de tienda</div></div>
+    <div class="campo"><div class="k">Ubicación</div><div class="v">Tienda + supervisión remota</div></div>
+    <div class="campo"><div class="k">Tipo de puesto</div><div class="v">Dirección · Acceso total a sistemas</div></div>
+  </div>
+
+  <h3>Funciones y responsabilidades</h3>
+  <ul class="func">
+    <li>Supervisar la operación diaria: apertura y cierre, atención al cliente, orden del piso y del probador.</li>
+    <li>Administrar al personal: horarios, asistencia (reloj checador), permisos, capacitación y clima laboral.</li>
+    <li>Revisar y autorizar la <b>nómina</b> (sueldos, comisiones y bonos) y validar los recibos de cada empleado.</li>
+    <li>Dar seguimiento a las metas de venta y a los indicadores del <b>Monitor comercial</b> (ventas, stock, compras).</li>
+    <li>Autorizar compras, precios y descuentos; coordinarse con el área de Compras/Planeación.</li>
+    <li>Vigilar el cuadre de caja e inventario; resolver descuadres y merma.</li>
+    <li>Administrar los sistemas (Odoo, tienda web yoohoo.mx, apps del VPS) y los accesos de los usuarios.</li>
+  </ul>
+
+  <div class="cols">
+    <div>
+      <h3>Sistemas y herramientas</h3>
+      <div class="chips">
+        <span class="sis">Odoo 19 (todos los módulos)</span>
+        <span class="sis">POS · Nómina · Inventario</span>
+        <span class="sis">Módulo Presupuestos</span>
+        <span class="sis">Tienda web yoohoo.mx</span>
+        <span class="sis">Reloj checador (admin)</span>
+      </div>
+      <h3>Perfil y competencias</h3>
+      <div class="chips">
+        <span>Liderazgo</span><span>Visión de negocio</span><span>Manejo de personal</span>
+        <span>Análisis de datos</span><span>Organización</span><span>Toma de decisiones</span>
+      </div>
+    </div>
+    <div>
+      <h3>Indicadores (KPIs)</h3>
+      <div class="kpi">
+        <div><b>Venta</b> Venta total de tienda vs. plan</div>
+        <div><b>Rentabilidad</b> Margen y control de gastos</div>
+        <div><b>Inventario</b> Cuadre y nivel de merma</div>
+        <div><b>Equipo</b> Rotación, asistencia y metas cumplidas</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Autoridad y accesos</h3>
+  <p style="font-size:14px">Cuenta de <b>administrador</b> con acceso a todos los módulos del sistema. Autorizado para checar asistencia sin restricción de ubicación (opción "checar sin geocerca"), por su rol de supervisión y movilidad. Responsable de resguardar los accesos, PINs y contraseñas del equipo.</p>
+
+  <div class="pie"><span><b>YOOHOO</b> · Descripción de Puesto</span><span>02 · Gerente de Tienda</span></div>
+</section>
+
+<!-- ===================== 3. COMPRAS ===================== -->
+<section class="hoja">
+  <div class="cab">
+    <div class="num">03</div>
+    <div>
+      <h2>Comprador(a) / Planeador(a) Comercial</h2>
+      <div class="area">Área: Compras y planeación (Presupuestos)</div>
+    </div>
+  </div>
+
+  <p class="lead">Definir qué, cuánto y cuándo comprar para tener el surtido correcto; planear el presupuesto de compra (OTB) y dar seguimiento comercial para maximizar la venta y evitar sobre-inventario.</p>
+
+  <div class="ficha">
+    <div class="campo"><div class="k">Reporta a</div><div class="v">Gerente / Administrador de Tienda</div></div>
+    <div class="campo"><div class="k">Supervisa a</div><div class="v">Apoyo de inventario (funcional)</div></div>
+    <div class="campo"><div class="k">Ubicación</div><div class="v">Tienda / oficina</div></div>
+    <div class="campo"><div class="k">Tipo de puesto</div><div class="v">Táctico · Planeación</div></div>
+  </div>
+
+  <h3>Funciones y responsabilidades</h3>
+  <ul class="func">
+    <li>Elaborar y dar seguimiento al <b>plan de ventas y de compras</b> por temporada y colección.</li>
+    <li>Calcular el <b>presupuesto de compra (OTB — Open To Buy)</b>: cuánto se puede comprar según venta y stock.</li>
+    <li>Preparar y conducir la <b>Agenda del Lunes</b>: revisión semanal de resultados y decisiones de surtido.</li>
+    <li>Analizar el <b>Monitor comercial</b> (ventas, existencias, compras) para detectar prendas de alta y baja rotación.</li>
+    <li>Seleccionar proveedores, negociar y colocar pedidos de mercancía; dar seguimiento a su llegada.</li>
+    <li>Definir precios de venta y estrategias de liquidación de saldos o temporada.</li>
+    <li>Coordinar con Inventario la recepción y el alta de productos nuevos en el sistema.</li>
+  </ul>
+
+  <div class="cols">
+    <div>
+      <h3>Sistemas y herramientas</h3>
+      <div class="chips">
+        <span class="sis">Módulo "Presupuestos" (YOOHOO Budget)</span>
+        <span class="sis">Monitor comercial</span>
+        <span class="sis">Agenda del Lunes · OTB</span>
+        <span class="sis">Odoo · Compras</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--tinta-2)">Accede con un usuario dedicado del equipo, con perfil <b>Usuario</b> o <b>Manager</b> según el nivel de autorización.</p>
+      <h3>Perfil y competencias</h3>
+      <div class="chips">
+        <span>Análisis numérico</span><span>Sentido de moda</span><span>Negociación</span>
+        <span>Planeación</span><span>Excel / datos</span><span>Visión comercial</span>
+      </div>
+    </div>
+    <div>
+      <h3>Indicadores (KPIs)</h3>
+      <div class="kpi">
+        <div><b>Rotación</b> Velocidad de venta del inventario</div>
+        <div><b>Sell-through</b> % vendido de lo comprado</div>
+        <div><b>Quiebres</b> Faltantes de prendas con demanda</div>
+        <div><b>OTB</b> Apego al presupuesto de compra</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pie"><span><b>YOOHOO</b> · Descripción de Puesto</span><span>03 · Compras y Planeación</span></div>
+</section>
+
+<!-- ===================== 4. INVENTARIO ===================== -->
+<section class="hoja">
+  <div class="cab">
+    <div class="num">04</div>
+    <div>
+      <h2>Encargado(a) de Inventario</h2>
+      <div class="area">Área: Almacén y control de existencias</div>
+    </div>
+  </div>
+
+  <p class="lead">Garantizar que las existencias físicas coincidan siempre con el sistema: recibir mercancía, mantener el orden del almacén, realizar conteos y minimizar la merma.</p>
+
+  <div class="ficha">
+    <div class="campo"><div class="k">Reporta a</div><div class="v">Gerente / Administrador de Tienda</div></div>
+    <div class="campo"><div class="k">Supervisa a</div><div class="v">Apoyo de piso (en conteos)</div></div>
+    <div class="campo"><div class="k">Ubicación</div><div class="v">Almacén / piso de venta</div></div>
+    <div class="campo"><div class="k">Tipo de puesto</div><div class="v">Operativo · Control</div></div>
+  </div>
+
+  <h3>Funciones y responsabilidades</h3>
+  <ul class="func">
+    <li>Recibir la mercancía de proveedores, verificar cantidades y calidad contra el pedido.</li>
+    <li>Dar de alta y etiquetar productos; registrar entradas en la <b>PWA de Inventario</b> y en Odoo.</li>
+    <li>Realizar conteos cíclicos y el inventario general; ajustar diferencias con autorización.</li>
+    <li>Mantener el almacén ordenado, clasificado por talla/colección y con acceso controlado.</li>
+    <li>Surtir el piso de venta y reponer prendas agotadas desde bodega.</li>
+    <li>Investigar y reportar <b>descuadres y merma</b>; proponer medidas para reducirlos.</li>
+    <li>Coordinar con Compras las recepciones y con los vendedores el surtido diario.</li>
+  </ul>
+
+  <div class="cols">
+    <div>
+      <h3>Sistemas y herramientas</h3>
+      <div class="chips">
+        <span class="sis">PWA de Inventario</span>
+        <span class="sis">Odoo · Inventory</span>
+        <span class="sis">Etiquetado / códigos</span>
+        <span class="sis">Reloj checador (PIN)</span>
+      </div>
+      <h3>Perfil y competencias</h3>
+      <div class="chips">
+        <span>Orden y método</span><span>Honestidad</span><span>Atención al detalle</span>
+        <span>Responsabilidad</span><span>Trabajo físico</span><span>Manejo de sistemas</span>
+      </div>
+    </div>
+    <div>
+      <h3>Indicadores (KPIs)</h3>
+      <div class="kpi">
+        <div><b>Exactitud</b> % de coincidencia físico vs. sistema</div>
+        <div><b>Merma</b> Nivel de descuadre / faltantes</div>
+        <div><b>Recepción</b> Tiempo de alta de mercancía nueva</div>
+        <div><b>Surtido</b> Piso sin quiebres de stock</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="nota">Importante: el <b>descuadre de inventario está ligado automáticamente al bono colectivo</b> del equipo; por eso el control de existencias es una responsabilidad compartida que afecta la compensación de todos.</p>
+
+  <div class="pie"><span><b>YOOHOO</b> · Descripción de Puesto</span><span>04 · Inventario</span></div>
+</section>
+
+<!-- ===================== 5. ATENCIÓN WHATSAPP ===================== -->
+<section class="hoja">
+  <div class="cab">
+    <div class="num">05</div>
+    <div>
+      <h2>Atención al Cliente por WhatsApp</h2>
+      <div class="area">Área: Ventas en línea · Servicio (Bot "Isabela")</div>
+    </div>
+  </div>
+
+  <p class="lead">Atender a los clientes que escriben por WhatsApp y por la tienda en línea: resolver dudas, cotizar, confirmar existencias y cerrar ventas, apoyándose en el asistente automatizado "Isabela" y dando el toque humano cuando se requiere.</p>
+
+  <div class="ficha">
+    <div class="campo"><div class="k">Reporta a</div><div class="v">Gerente / Administrador de Tienda</div></div>
+    <div class="campo"><div class="k">Supervisa a</div><div class="v">Bot "Isabela" (asistente)</div></div>
+    <div class="campo"><div class="k">Ubicación</div><div class="v">Tienda / remoto</div></div>
+    <div class="campo"><div class="k">Tipo de puesto</div><div class="v">Servicio · Venta digital</div></div>
+  </div>
+
+  <h3>Funciones y responsabilidades</h3>
+  <ul class="func">
+    <li>Responder los mensajes de WhatsApp (729 836 1124) y de la tienda web con rapidez y amabilidad.</li>
+    <li>Consultar existencias y tallas, cotizar por cantidad y traducir tallas (letra ↔ número) para el cliente.</li>
+    <li>Compartir la ubicación de la tienda y guiar al cliente hacia la compra en piso o a domicilio.</li>
+    <li>Supervisar al asistente <b>"Isabela"</b>: retomar la conversación cuando el bot no resuelve y corregir información.</li>
+    <li>Registrar el pedido en <b>Captura de Pedidos</b> / POS y dar seguimiento hasta la entrega o el pago.</li>
+    <li>Detectar quejas o reclamos y escalarlos al Gerente; cuidar la reputación de la marca.</li>
+    <li>Reportar preguntas frecuentes y fallas del bot para mejorar la atención automatizada.</li>
+  </ul>
+
+  <div class="cols">
+    <div>
+      <h3>Sistemas y herramientas</h3>
+      <div class="chips">
+        <span class="sis">WhatsApp Business</span>
+        <span class="sis">Bot "Isabela"</span>
+        <span class="sis">Captura de Pedidos / POS</span>
+        <span class="sis">Tienda web yoohoo.mx</span>
+      </div>
+      <h3>Perfil y competencias</h3>
+      <div class="chips">
+        <span>Redacción clara</span><span>Atención al cliente</span><span>Ventas</span>
+        <span>Paciencia</span><span>Rapidez de respuesta</span><span>Conocimiento del producto</span>
+      </div>
+    </div>
+    <div>
+      <h3>Indicadores (KPIs)</h3>
+      <div class="kpi">
+        <div><b>Respuesta</b> Tiempo de primera respuesta</div>
+        <div><b>Conversión</b> % de chats que terminan en venta</div>
+        <div><b>Satisfacción</b> Trato y resolución al cliente</div>
+        <div><b>Bot</b> % de casos resueltos por "Isabela"</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="nota">Hoy la primera línea de atención está automatizada por el bot "Isabela"; este puesto <b>supervisa y complementa</b> al bot. Puede combinarse con el puesto de Vendedor(a) según el volumen de mensajes.</p>
+
+  <div class="firma">
+    <div>Elaboró · Administración</div>
+    <div>Recibí de conformidad · Empleado(a)</div>
+  </div>
+
+  <div class="pie"><span><b>YOOHOO</b> · Descripción de Puesto</span><span>05 · Atención WhatsApp</span></div>
+</section>
