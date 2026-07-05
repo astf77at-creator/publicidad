@@ -1,6 +1,6 @@
 // Service worker: shell instalable, pero el HTML se sirve SIEMPRE desde la red
 // (network-first) para no quedar atrapado en un index.html viejo cacheado.
-const CACHE = "imagenes-v12";  // v12: cola de hasta 20 flujos con barras de progreso
+const CACHE = "imagenes-v13";  // v13: estampa el código del producto en la imagen
 const SHELL = ["./", "index.html", "styles.css", "app.js", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {

@@ -3,9 +3,58 @@ from __future__ import annotations
 
 import io
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from .config import settings
+
+_FONT_PATHS = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+]
+
+
+def _load_font(size: int):
+    for path in _FONT_PATHS:
+        try:
+            return ImageFont.truetype(path, size)
+        except Exception:  # noqa: BLE001
+            continue
+    return ImageFont.load_default()
+
+
+def stamp_code(img: "Image.Image", code: str) -> "Image.Image":
+    """Estampa el código del producto de forma discreta (abajo a la derecha).
+
+    Chip translúcido oscuro con el código en blanco: lo bastante nítido para
+    que un chatbot lo lea por OCR y el personal lo identifique, sin invadir la
+    prenda.
+    """
+    code = (str(code or "")).strip()
+    if not code:
+        return img
+    W, H = img.size
+    size = max(14, W // 40)                     # ~20px con 800 de ancho
+    font = _load_font(size)
+    base = img.convert("RGBA")
+    overlay = Image.new("RGBA", base.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
+    try:
+        bbox = d.textbbox((0, 0), code, font=font)
+    except Exception:  # noqa: BLE001
+        bbox = (0, 0, len(code) * size // 2, size)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    pad = max(4, size // 3)
+    margin = max(6, size // 2)
+    x2, y2 = W - margin, H - margin
+    x1, y1 = x2 - tw - 2 * pad, y2 - th - 2 * pad
+    if hasattr(d, "rounded_rectangle"):
+        d.rounded_rectangle([x1, y1, x2, y2], radius=max(4, size // 4),
+                            fill=(0, 0, 0, 115))
+    else:
+        d.rectangle([x1, y1, x2, y2], fill=(0, 0, 0, 115))
+    d.text((x1 + pad - bbox[0], y1 + pad - bbox[1]), code,
+           font=font, fill=(255, 255, 255, 235))
+    return Image.alpha_composite(base, overlay).convert("RGB")
 
 
 def to_png_reference(raw: bytes, max_side: int = 1536) -> bytes:
@@ -26,8 +75,11 @@ def to_png_reference(raw: bytes, max_side: int = 1536) -> bytes:
     return out.getvalue()
 
 
-def to_webp(png_bytes: bytes) -> bytes:
-    """Recorta al ratio destino (cover + center crop) y exporta WEBP ligero."""
+def to_webp(png_bytes: bytes, code: str | None = None) -> bytes:
+    """Recorta al ratio destino (cover + center crop) y exporta WEBP ligero.
+
+    Si se pasa `code`, lo estampa de forma discreta (para OCR del chatbot).
+    """
     target_w, target_h = settings.img_ancho, settings.img_alto
     max_bytes = settings.img_max_kb * 1024
 
@@ -46,6 +98,9 @@ def to_webp(png_bytes: bytes) -> bytes:
     left = (new_w - target_w) // 2
     top = (new_h - target_h) // 2
     img = img.crop((left, top, left + target_w, top + target_h))
+
+    if code:
+        img = stamp_code(img, code)
 
     # Bajar la calidad hasta cumplir el límite de peso.
     for quality in range(90, 30, -5):

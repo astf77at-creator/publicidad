@@ -140,7 +140,8 @@ def _prune(max_age: float = 7200) -> None:
 
 def _process_job(job_id: str, reference_id: int, tipo: str,
                  descripcion: str, refs: list[bytes],
-                 variant_ids: list[int] | None = None) -> None:
+                 variant_ids: list[int] | None = None,
+                 codigo: str = "") -> None:
     """Trabajo pesado (corre en un hilo del pool): OpenAI + WEBP + Odoo."""
     poses = poses_for(tipo, settings.poses_por_producto)
     total = len(poses)
@@ -158,7 +159,7 @@ def _process_job(job_id: str, reference_id: int, tipo: str,
             png = generate_pose(these_refs, prompt)
             if anchor_png is None:
                 anchor_png = png       # la 1ª pose marca el estilo del resto
-            webps.append(to_webp(png))
+            webps.append(to_webp(png, code=codigo))
             _update(job_id, done=i, etapa=f"Generando pose {i} de {total}…")
 
         _update(job_id, etapa="Subiendo imágenes a Odoo…")
@@ -189,6 +190,7 @@ async def create_job(
     frente: UploadFile = File(...),
     trasero: UploadFile = File(...),
     variant_ids: str = Form(default=""),
+    codigo: str = Form(default=""),
     emp: dict = Depends(require_pin),
 ):
     """Encola un trabajo y responde de inmediato con su job_id."""
@@ -220,7 +222,8 @@ async def create_job(
             "creado": now,
             "actualizado": now,
         }
-    _executor.submit(_process_job, job_id, reference_id, tipo, descripcion, refs, vids)
+    _executor.submit(_process_job, job_id, reference_id, tipo, descripcion,
+                     refs, vids, codigo)
     return {"job_id": job_id, "estado": "en_cola"}
 
 

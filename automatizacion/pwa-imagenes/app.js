@@ -356,6 +356,7 @@ $("form").addEventListener("submit", async (e) => {
   fd.append("descripcion", verificado.name || verificado.default_code);
   fd.append("frente", $("frente").files[0]);
   fd.append("trasero", $("trasero").files[0]);
+  fd.append("codigo", verificado.default_code || "");   // se estampa discreto en la imagen
   if (tieneColor && $("color").value) fd.append("variant_ids", $("color").value);
 
   btn.disabled = true;
