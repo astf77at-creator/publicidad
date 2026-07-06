@@ -339,10 +339,10 @@
       <p class="sub">Sin estos, el producto no sirve en el POS ni en inventario. La pantalla no deja guardar si faltan.</p>
       <table>
         <tr><td>Nombre</td><td>Único campo que Odoo exige por sistema. Ej. "Blusa manga larga rayas"</td></tr>
-        <tr><td>Categoría</td><td>Categoría interna de producto (para reportes y presupuesto OTB)</td></tr>
+        <tr><td>Categoría</td><td>Una sola selección llena las 3 de Odoo: Punto de venta, eCommerce y General</td></tr>
         <tr><td>Código de barras</td><td>Para cobrar con escáner en el POS. Debe ser único — la PWA lo valida contra Odoo</td></tr>
-        <tr><td>Precio de venta</td><td>Precio al público (IVA incluido, como operas hoy)</td></tr>
         <tr><td>Costo</td><td>Necesario para margen, valuación de inventario y merma</td></tr>
+        <tr><td>Precios (4 listas)</td><td>Paquete, Corrida, Mayoreo y Menudeo — las listas de precios que se manejan por default</td></tr>
       </table>
     </div>
     <div class="tcampo recom">
@@ -353,8 +353,8 @@
         <tr><td>Tipo</td><td>Pre-fijado en "Almacenable" (controla existencias). No se muestra, va por dentro</td></tr>
         <tr><td>Impuesto</td><td>Pre-fijado IVA 16% incluido en el precio</td></tr>
         <tr><td>Disponible en POS</td><td>Encendido por defecto — para eso lo estás dando de alta</td></tr>
-        <tr><td>Categoría POS</td><td>Se propone igual a la categoría interna</td></tr>
         <tr><td>Referencia interna</td><td>SKU auto-generado (prefijo de categoría + consecutivo), editable</td></tr>
+        <tr><td>Marca</td><td>Catálogo de marcas seleccionable, con opción de agregar una nueva</td></tr>
       </table>
     </div>
     <div class="tcampo opc">
@@ -430,14 +430,28 @@
                 <option value="CAL">Calzado</option>
                 <option value="ACC">Accesorios</option>
               </select>
-              <div class="ayuda">Se usa también como categoría del POS y para el presupuesto OTB</div>
+              <div class="ayuda">Una sola selección llena las 3 categorías de Odoo: Punto de venta, eCommerce y General</div>
               <div class="msg-error">Selecciona la categoría</div>
+            </div>
+            <div class="campo">
+              <label>Referencia interna (SKU) <span class="opt">· auto</span></label>
+              <input type="text" id="inSku" placeholder="Se genera al elegir categoría">
+              <div class="ayuda">Se propone sola (prefijo + consecutivo). Puedes editarla.</div>
+            </div>
+            <div class="campo">
+              <label>Marca</label>
+              <select id="inMarca">
+                <option value="">— Selecciona —</option>
+                <option>YOOHOO</option>
+                <option>Genérica / sin marca</option>
+                <option>＋ Agregar marca nueva…</option>
+              </select>
             </div>
           </div>
 
-          <!-- CÓDIGOS -->
+          <!-- CÓDIGO DE BARRAS -->
           <div class="bloque">
-            <h4>🔢 Códigos</h4>
+            <h4>🔢 Código de barras</h4>
             <div class="campo" id="c-barcode">
               <label>Código de barras <span class="req">*</span></label>
               <div class="barcode-fila">
@@ -447,28 +461,42 @@
               <div class="ayuda">El botón abre la cámara del teléfono como escáner. La PWA verifica que no exista ya en Odoo.</div>
               <div class="msg-error">Captura o escanea el código de barras</div>
             </div>
-            <div class="campo">
-              <label>Referencia interna (SKU) <span class="opt">· auto</span></label>
-              <input type="text" id="inSku" placeholder="Se genera al elegir categoría">
-              <div class="ayuda">Se propone sola (prefijo + consecutivo). Puedes editarla.</div>
-            </div>
           </div>
 
           <!-- PRECIOS -->
           <div class="bloque">
             <h4>💲 Precios</h4>
+            <div class="campo" id="c-costo">
+              <label>Costo <span class="req">*</span></label>
+              <input type="number" id="inCosto" placeholder="0.00" oninput="quitaError(this);calculaMargen()">
+              <div class="msg-error">Captura el costo</div>
+            </div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin:12px 0 6px">Precio de venta por lista <span class="req">*</span></label>
             <div class="fila">
-              <div class="campo" id="c-costo">
-                <label>Costo <span class="req">*</span></label>
-                <input type="number" id="inCosto" placeholder="0.00" oninput="quitaError(this);calculaMargen()">
-                <div class="msg-error">Captura el costo</div>
+              <div class="campo" id="c-paquete">
+                <label style="font-weight:600;color:var(--gris)">Paquete</label>
+                <input type="number" id="inPaquete" placeholder="0.00" oninput="quitaError(this);calculaMargen()">
+                <div class="msg-error">Falta paquete</div>
               </div>
-              <div class="campo" id="c-precio">
-                <label>Precio de venta <span class="req">*</span></label>
-                <input type="number" id="inPrecio" placeholder="0.00" oninput="quitaError(this);calculaMargen()">
-                <div class="msg-error">Captura el precio</div>
+              <div class="campo" id="c-corrida">
+                <label style="font-weight:600;color:var(--gris)">Corrida</label>
+                <input type="number" id="inCorrida" placeholder="0.00" oninput="quitaError(this);calculaMargen()">
+                <div class="msg-error">Falta corrida</div>
               </div>
             </div>
+            <div class="fila">
+              <div class="campo" id="c-mayoreo">
+                <label style="font-weight:600;color:var(--gris)">Mayoreo</label>
+                <input type="number" id="inMayoreo" placeholder="0.00" oninput="quitaError(this);calculaMargen()">
+                <div class="msg-error">Falta mayoreo</div>
+              </div>
+              <div class="campo" id="c-menudeo">
+                <label style="font-weight:600;color:var(--gris)">Menudeo</label>
+                <input type="number" id="inMenudeo" placeholder="0.00" oninput="quitaError(this);calculaMargen()">
+                <div class="msg-error">Falta menudeo</div>
+              </div>
+            </div>
+            <div class="ayuda" style="margin-top:-2px">Las 4 listas de precios que manejamos por default. Menudeo es el precio base al público.</div>
             <div class="margen-caja" id="cajaMargen" style="display:none">
               <span>Margen</span><span id="txtMargen">—</span>
             </div>
@@ -592,11 +620,13 @@
     <tr><td>Nombre</td><td><code>name</code></td><td>Único obligatorio por sistema en Odoo</td></tr>
     <tr><td>Foto delantera</td><td><code>image_1920</code></td><td>Imagen principal del producto (la que ve el POS)</td></tr>
     <tr><td>Foto trasera y de proveedor</td><td><code>product_template_image_ids</code></td><td>Imágenes extra del producto (galería); la de proveedor puede omitirse</td></tr>
-    <tr><td>Categoría</td><td><code>categ_id</code> + <code>pos_categ_ids</code></td><td>Una sola selección llena ambas (interna y POS)</td></tr>
+    <tr><td>Categoría</td><td><code>categ_id</code> + <code>pos_categ_ids</code> + <code>public_categ_ids</code></td><td>Una sola selección llena las tres: General (interna), Punto de venta y eCommerce</td></tr>
+    <tr><td>Marca</td><td><code>product_brand_id</code></td><td>Catálogo de marcas; si tecleas una nueva, se crea al vuelo</td></tr>
     <tr><td>Código de barras</td><td><code>barcode</code></td><td>Validación de unicidad antes de crear</td></tr>
     <tr><td>Referencia interna</td><td><code>default_code</code></td><td>SKU auto: prefijo de categoría + consecutivo</td></tr>
-    <tr><td>Precio de venta</td><td><code>list_price</code></td><td>Precio al público con IVA incluido</td></tr>
     <tr><td>Costo</td><td><code>standard_price</code></td><td>Alimenta margen, valuación y control de merma</td></tr>
+    <tr><td>Precio Menudeo</td><td><code>list_price</code></td><td>Precio base al público con IVA incluido (lista Menudeo)</td></tr>
+    <tr><td>Precios Paquete / Corrida / Mayoreo</td><td><code>product.pricelist.item</code></td><td>Regla de precio fijo del producto en cada una de las 3 listas restantes</td></tr>
     <tr><td>Impuesto</td><td><code>taxes_id</code></td><td>Por defecto IVA 16% incluido en precio</td></tr>
     <tr><td>(oculto) Tipo</td><td><code>type = 'consu'</code> + <code>is_storable = True</code></td><td>Almacenable: controla existencias (Odoo 17+/19)</td></tr>
     <tr><td>Disponible en POS</td><td><code>available_in_pos</code></td><td>Encendido por defecto</td></tr>
@@ -628,17 +658,24 @@
     if(cat) document.getElementById('inSku').value=cat+'-'+String(Math.floor(Math.random()*900)+100);
   }
 
-  // ---------- margen ----------
+  // ---------- margen por lista ----------
+  const LISTAS=[['inPaquete','PAQ'],['inCorrida','CORR'],['inMayoreo','MAY'],['inMenudeo','MEN']];
   function calculaMargen(){
     const c=parseFloat(document.getElementById('inCosto').value);
-    const p=parseFloat(document.getElementById('inPrecio').value);
     const caja=document.getElementById('cajaMargen');
-    if(isNaN(c)||isNaN(p)||p<=0){caja.style.display='none';return;}
-    const m=((p-c)/p*100);
+    if(isNaN(c)){caja.style.display='none';return;}
+    let partes=[],hayNegativo=false;
+    LISTAS.forEach(([id,etq])=>{
+      const p=parseFloat(document.getElementById(id).value);
+      if(isNaN(p)||p<=0)return;
+      const m=(p-c)/p*100;
+      if(m<0)hayNegativo=true;
+      partes.push(etq+' '+m.toFixed(0)+'%');
+    });
+    if(!partes.length){caja.style.display='none';return;}
     caja.style.display='flex';
-    caja.classList.toggle('negativo',m<0);
-    document.getElementById('txtMargen').textContent=
-      (m<0?'⚠️ ':'')+m.toFixed(1)+'%  ($'+(p-c).toFixed(2)+')';
+    caja.classList.toggle('negativo',hayNegativo);
+    document.getElementById('txtMargen').textContent=(hayNegativo?'⚠️ ':'')+partes.join(' · ');
   }
 
   // ---------- tallas ----------
@@ -682,7 +719,9 @@
   function guardar(){
     const oblig=[
       ['c-nombre','inNombre'],['c-categoria','inCategoria'],
-      ['c-barcode','inBarcode'],['c-costo','inCosto'],['c-precio','inPrecio']
+      ['c-barcode','inBarcode'],['c-costo','inCosto'],
+      ['c-paquete','inPaquete'],['c-corrida','inCorrida'],
+      ['c-mayoreo','inMayoreo'],['c-menudeo','inMenudeo']
     ];
     let primero=null;
     oblig.forEach(([campo,inp])=>{
@@ -703,10 +742,13 @@
     const filas=[
       ['Producto',v('inNombre')],
       ['Fotos',fotos.length?fotos.length+' ('+fotos.join(', ')+')':'—'],
-      ['Categoría',document.getElementById('inCategoria').selectedOptions[0].text],
-      ['Código de barras',v('inBarcode')],
+      ['Categoría (POS·eCom·Gral)',document.getElementById('inCategoria').selectedOptions[0].text],
       ['SKU',v('inSku')||'—'],
-      ['Costo / Precio','$'+(+v('inCosto')).toFixed(2)+' / $'+(+v('inPrecio')).toFixed(2)],
+      ['Marca',v('inMarca')||'—'],
+      ['Código de barras',v('inBarcode')],
+      ['Costo','$'+(+v('inCosto')).toFixed(2)],
+      ['Paquete / Corrida','$'+(+v('inPaquete')).toFixed(2)+' / $'+(+v('inCorrida')).toFixed(2)],
+      ['Mayoreo / Menudeo','$'+(+v('inMayoreo')).toFixed(2)+' / $'+(+v('inMenudeo')).toFixed(2)],
       ['Impuesto',v('inIva')],
       ['POS',document.getElementById('swPos').classList.contains('on')?'✅ Disponible':'—'],
       ['Variantes',conTallas?nVar+' ('+tallas.join(', ')+(colores.length?' × '+colores.join(', '):'')+')':'Sin tallas'],
@@ -719,8 +761,9 @@
   function cerrarOverlay(){document.getElementById('overlay').classList.remove('on');}
   function otroProducto(){
     cerrarOverlay();
-    ['inNombre','inBarcode','inSku','inCosto','inPrecio','inCant'].forEach(id=>document.getElementById(id).value='');
+    ['inNombre','inBarcode','inSku','inCosto','inPaquete','inCorrida','inMayoreo','inMenudeo','inCant'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('inCategoria').value='';
+    document.getElementById('inMarca').value='';
     document.getElementById('cajaMargen').style.display='none';
     ['fotoProv','fotoDel','fotoTra'].forEach(id=>{
       const f=document.getElementById(id);f.classList.remove('lista');f.textContent='＋';
