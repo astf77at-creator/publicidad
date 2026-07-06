@@ -206,15 +206,64 @@
     padding:7px 13px;border-radius:999px;border:1.5px solid var(--borde);
     background:var(--blanco);font-size:13px;font-weight:700;color:var(--gris);
     cursor:pointer;user-select:none;transition:.12s;
+    display:inline-flex;align-items:center;gap:6px;
   }
   .chips .ch.on{background:var(--azul);border-color:var(--azul);color:var(--blanco);}
-  .preset-fila{display:flex;gap:8px;margin-bottom:10px;}
-  .preset{
-    flex:1;text-align:center;font-size:11.5px;font-weight:800;
-    border:1.5px solid var(--borde);border-radius:10px;padding:7px 4px;
-    cursor:pointer;color:var(--gris);background:#fbfcfe;
+  .tag-real{
+    font-size:9.5px;background:#dcfce7;color:#166534;border-radius:999px;
+    padding:2px 8px;letter-spacing:.3px;
   }
-  .preset.on{border-color:var(--acento);background:#fffbeb;color:#b45309;}
+
+  /* grupos de corrida (segmentos) */
+  .seg-scroll{
+    display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;
+    scrollbar-width:none;
+  }
+  .seg-scroll::-webkit-scrollbar{display:none;}
+  .seg{
+    flex-shrink:0;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:800;
+    border:1.5px solid var(--borde);background:#fbfcfe;color:var(--gris);cursor:pointer;
+    white-space:nowrap;
+  }
+  .seg.on{background:var(--acento);border-color:var(--acento);color:var(--blanco);}
+  .seg .cnt{
+    background:rgba(0,0,0,.12);border-radius:999px;padding:0 6px;font-size:10.5px;margin-left:4px;
+  }
+  .acciones-corrida{display:flex;gap:8px;margin-bottom:9px;}
+  .acciones-corrida button{
+    flex:1;padding:8px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;
+    font-family:inherit;border:1.5px solid var(--borde);background:var(--blanco);color:var(--azul);
+  }
+  .sel-line{font-size:11.5px;color:var(--gris);margin-top:8px;line-height:1.5;}
+  .sel-line b{color:var(--azul);}
+
+  /* swatches de color */
+  .sw-c{
+    width:15px;height:15px;border-radius:50%;flex-shrink:0;
+    border:1px solid rgba(0,0,0,.18);display:inline-block;
+  }
+  .btn-todos{
+    width:100%;margin-top:9px;padding:10px;border-radius:10px;font-size:13px;font-weight:800;
+    cursor:pointer;font-family:inherit;border:1.5px dashed #94a3b8;background:#f8fafc;color:var(--gris);
+  }
+  .chips .ch .x{opacity:.7;font-weight:400;}
+
+  /* hoja selector de colores */
+  .hoja-colores input{
+    width:100%;padding:11px 13px;font-size:14px;border:1.5px solid var(--borde);
+    border-radius:11px;background:#fbfcfe;outline:none;font-family:inherit;margin-bottom:10px;
+  }
+  .lista-colores{
+    display:grid;grid-template-columns:1fr 1fr;gap:6px;
+    max-height:330px;overflow-y:auto;margin-bottom:14px;
+  }
+  .item-color{
+    display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;
+    border:1.5px solid var(--borde);font-size:12px;font-weight:700;color:var(--gris);
+    cursor:pointer;user-select:none;
+  }
+  .item-color.on{border-color:var(--azul);background:#eff6ff;color:var(--azul);}
+  .item-color .sw-c{width:18px;height:18px;}
 
   /* switch */
   .switch-fila{display:flex;justify-content:space-between;align-items:center;gap:10px;}
@@ -351,8 +400,8 @@
       <h3>🔵 Opcionales <span class="etq b">SOLO SI APLICA</span></h3>
       <p class="sub">Aparecen colapsados o como interruptores para no estorbar el alta rápida.</p>
       <table>
-        <tr><td>Tallas / corrida</td><td>Si el producto maneja tallas, se selecciona la corrida y Odoo crea las variantes solas</td></tr>
-        <tr><td>Color</td><td>Segundo atributo de variante (combinado con talla)</td></tr>
+        <tr><td>Tallas / corrida</td><td>Las 49 tallas reales de Odoo agrupadas en 5 corridas (Junior, Letras, Pares, Pants, Unitalla); Odoo crea las variantes solas</td></tr>
+        <tr><td>Color</td><td>Los 117 colores reales: 10 frecuentes directo + buscador para el resto</td></tr>
         <tr><td>Proveedor</td><td>Para reabastecimiento y compras</td></tr>
         <tr><td>Cantidad inicial</td><td>Si ya llegó mercancía, deja el inventario inicial ajustado de una vez</td></tr>
       </table>
@@ -414,11 +463,23 @@
               <label>Categoría <span class="req">*</span></label>
               <select id="inCategoria" onchange="quitaError(this);sugiereSku()">
                 <option value="">— Selecciona —</option>
+                <option value="JEA">Jeans</option>
+                <option value="SKI">Skinny</option>
+                <option value="MOM">Mom</option>
+                <option value="WID">Wide Leg</option>
+                <option value="CAR">Cargo</option>
                 <option value="BLU">Blusas</option>
-                <option value="PAN">Pantalones</option>
+                <option value="CAM">Camisas</option>
+                <option value="FAL">Faldas</option>
                 <option value="VES">Vestidos</option>
-                <option value="CAL">Calzado</option>
-                <option value="ACC">Accesorios</option>
+                <option value="SHO">Shorts</option>
+                <option value="BER">Bermudas</option>
+                <option value="CHA">Chamarras</option>
+                <option value="SUD">Sudaderas</option>
+                <option value="PAN">Pantalones</option>
+                <option value="LEG">Leggings</option>
+                <option value="JOG">Jogger</option>
+                <option value="BOD">Bodys</option>
               </select>
               <div class="ayuda">Una sola selección llena las 3 categorías de Odoo: Punto de venta, eCommerce y General</div>
               <div class="msg-error">Selecciona la categoría</div>
@@ -488,26 +549,27 @@
 
           <!-- TALLAS / VARIANTES -->
           <div class="bloque">
-            <h4>📏 Tallas y variantes</h4>
+            <h4>📏 Tallas y variantes <span class="tag-real">datos reales de Odoo</span></h4>
             <div class="switch-fila" style="margin-bottom:10px">
               <div class="txt"><b>¿Maneja tallas?</b><span>Odoo creará una variante por talla</span></div>
               <div class="sw" id="swTallas" onclick="toggleTallas()"></div>
             </div>
             <div id="zonaTallas" style="display:none">
-              <div class="preset-fila">
-                <div class="preset" onclick="preset('ropa',this)">👚 ROPA<br>CH·M·G·XG</div>
-                <div class="preset" onclick="preset('calzado',this)">👟 CALZADO<br>22 – 27</div>
+              <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px">Tallas <span class="opt">· 49 en catálogo, por grupo de corrida</span></label>
+              <div class="seg-scroll" id="segGrupos"></div>
+              <div class="acciones-corrida">
+                <button onclick="corridaCompleta()">⚡ Toda la corrida</button>
+                <button onclick="limpiaGrupo()">✕ Limpiar grupo</button>
               </div>
               <div class="chips" id="chipsTallas"></div>
-              <div class="campo" style="margin-top:12px">
-                <label>Colores <span class="opt">· opcional</span></label>
-                <div class="chips" id="chipsColores">
-                  <div class="ch" onclick="toggleChip(this)">Negro</div>
-                  <div class="ch" onclick="toggleChip(this)">Blanco</div>
-                  <div class="ch" onclick="toggleChip(this)">Rojo</div>
-                  <div class="ch" onclick="toggleChip(this)">Azul</div>
-                  <div class="ch" onclick="toggleChip(this)">Rosa</div>
-                </div>
+              <div class="sel-line" id="tallasSelTxt"></div>
+
+              <div class="campo" style="margin-top:14px">
+                <label>Colores <span class="opt">· opcional · 117 en catálogo</span></label>
+                <div class="ayuda" style="margin:0 0 7px">Los más usados en tu tienda, directo. El resto en el buscador:</div>
+                <div class="chips" id="colorFrec"></div>
+                <button class="btn-todos" onclick="abreColores()">🎨 Buscar en todos los colores (117)…</button>
+                <div class="chips" id="coloresSelZona" style="margin-top:9px"></div>
               </div>
               <div class="resumen-var" id="resVar" style="display:none"></div>
             </div>
@@ -531,6 +593,18 @@
 
         <div class="pie-guardar">
           <button class="btn-guardar" onclick="guardar()">✓ &nbsp;Guardar producto</button>
+        </div>
+
+        <!-- HOJA SELECTOR DE COLORES -->
+        <div class="overlay" id="ovColores">
+          <div class="hoja hoja-colores">
+            <h3 style="margin-bottom:10px">🎨 Colores del catálogo</h3>
+            <input type="text" id="buscaColor" placeholder="Buscar color… (ej. stone, rosa, khaki)" oninput="pintaListaColores()">
+            <div class="lista-colores" id="listaColores"></div>
+            <div class="btns">
+              <button class="principal" id="btnColoresListo" onclick="cierraColores()">Listo</button>
+            </div>
+          </div>
         </div>
 
         <!-- OVERLAY DE ÉXITO -->
@@ -559,10 +633,23 @@
         o detrás de un interruptor.
       </div>
       <div class="nota">
-        <span class="titulo-nota">📏 Corridas de talla</span>
-        Con un toque seleccionas la corrida completa (ropa CH–XG o calzado 22–27) y desmarcas
-        las tallas que no llegaron. Odoo genera las variantes automáticamente; el contador azul
-        te dice cuántas se crearán.
+        <span class="titulo-nota">📏 49 tallas, agrupadas por corrida</span>
+        Las tallas son <b>las reales de tu Odoo</b>, organizadas en 5 grupos: <b>Junior impares</b> (1–19, la más vendida),
+        <b>Letras</b> (XS–XXL, combinadas y extendidas 1X–4X), <b>Pares</b> (0–24), <b>Pants</b> (28–40) y <b>Unitalla</b>.
+        "⚡ Toda la corrida" marca el grupo completo y desmarcas lo que no llegó. El contador azul dice cuántas variantes se crearán.
+      </div>
+      <div class="nota">
+        <span class="titulo-nota">🎨 117 colores, sin scroll infinito</span>
+        Los <b>10 colores más usados</b> de tu catálogo (Stone Obscuro, Stone Medio, Stone Claro, Negro, Blanco…)
+        aparecen directo como botones con su muestra de color. El resto se encuentra con el
+        <b>buscador</b> ("stone", "rosa", "khaki"…) en una hoja deslizable.
+      </div>
+      <div class="nota">
+        <span class="titulo-nota">🧹 De paso: el catálogo necesita limpieza</span>
+        Al jalar los datos encontré duplicados que convendría unificar en Odoo:
+        talla <b>"0" dos veces</b>, "Unitalla"/"UNITALLA"/"Única"/"CERO", "khaki"/"Khaki", "camel"/"Camel",
+        colores repetidos en inglés y español ("Black"/"Negro", "White"/"Blanco"), y una categoría POS que dice
+        <i>"BLUSA SI VOY OERO ME CHOCA"</i> 👀. Lo podemos limpiar cuando quieras.
       </div>
       <div class="nota">
         <span class="titulo-nota">🔐 Solo para quien tú digas</span>
@@ -594,12 +681,12 @@
     <tr><td>Marca</td><td><code>product_brand_id</code></td><td>Catálogo de marcas; si tecleas una nueva, se crea al vuelo</td></tr>
     <tr><td>Referencia interna</td><td><code>default_code</code></td><td>SKU auto: prefijo de categoría + consecutivo. Identificador para buscar en el POS (no se usa código de barras)</td></tr>
     <tr><td>Costo</td><td><code>standard_price</code></td><td>Alimenta margen, valuación y control de merma</td></tr>
-    <tr><td>Precio Menudeo</td><td><code>list_price</code></td><td>Precio base al público con IVA incluido (lista Menudeo)</td></tr>
-    <tr><td>Precios Paquete / Corrida / Mayoreo</td><td><code>product.pricelist.item</code></td><td>Regla de precio fijo del producto en cada una de las 3 listas restantes</td></tr>
+    <tr><td>Precio Menudeo</td><td><code>list_price</code> + lista Menudeo (id 15)</td><td>Precio base al público con IVA incluido</td></tr>
+    <tr><td>Precios Paquete / Corrida / Mayoreo</td><td><code>product.pricelist.item</code></td><td>Regla de precio fijo en las listas reales: Paquetes (id 13), Corridas (id 3), Mayoreo (id 4). La lista "Tarjeta +4%" se calcula sola (regla global)</td></tr>
     <tr><td>Impuesto</td><td><code>taxes_id</code></td><td>Por defecto IVA 16% incluido en precio</td></tr>
     <tr><td>(oculto) Tipo</td><td><code>type = 'consu'</code> + <code>is_storable = True</code></td><td>Almacenable: controla existencias (Odoo 17+/19)</td></tr>
     <tr><td>Disponible en POS</td><td><code>available_in_pos</code></td><td>Encendido por defecto</td></tr>
-    <tr><td>Tallas / Colores</td><td><code>attribute_line_ids</code></td><td>Atributos "Talla" y "Color"; Odoo genera las variantes (product.product)</td></tr>
+    <tr><td>Tallas / Colores</td><td><code>attribute_line_ids</code></td><td>Atributos reales "Tallas" (id 10) y "Colour" (id 9); Odoo genera las variantes (product.product)</td></tr>
     <tr><td>Cantidad inicial</td><td><code>stock.quant</code> (ajuste)</td><td>Ajuste de inventario inicial en la ubicación de la tienda</td></tr>
   </table>
   </div>
@@ -638,36 +725,147 @@
     document.getElementById('txtMargen').textContent=(hayNegativo?'⚠️ ':'')+partes.join(' · ');
   }
 
-  // ---------- tallas ----------
-  const CORRIDAS={
-    ropa:['CH','M','G','XG'],
-    calzado:['22','22.5','23','23.5','24','24.5','25','25.5','26','26.5','27']
+  // ---------- datos reales de Odoo (yoohoo2, 2026-07-06) ----------
+  const ODOO={"colores":[{"n":"Almendra","h":"#EFDECD"},{"n":"Amarillo Mantequilla","h":"#FFF4A3"},{"n":"Avena","h":"#E8DCC4"},{"n":"Azul Claro","h":"#ADD8E6"},{"n":"Azul Claro/Negro","h":"#ADD8E6"},{"n":"Azul Hielo","h":"#D6F1FF"},{"n":"Azul Marino/Marfil","h":"#1A2F4A"},{"n":"Azul Piedra","h":"#5D6D7E"},{"n":"Azul/Blanco","h":"#0000FF"},{"n":"Beige/Azul Marino","h":"#F5F5DC"},{"n":"Blanco/Azul","h":"#FFFFFF"},{"n":"Blanco/Rosa","h":"#FFFFFF"},{"n":"Blanco/Taupe","h":"#FFFFFF"},{"n":"Caoba","h":"#7B3F2A"},{"n":"Caqui Claro","h":"#D5C9A5"},{"n":"Chocolate","h":"#3C2415"},{"n":"Crema/Negro","h":"#F5F5DC"},{"n":"Kiwi","h":"#8EE53F"},{"n":"Lima","h":"#BFFF00"},{"n":"Menta Apagada","h":"#A8C4B0"},{"n":"Moka","h":"#8B6F47"},{"n":"Naranja Claro","h":"#FFB347"},{"n":"Natural","h":"#E8DCC4"},{"n":"Natural/Negro","h":"#E8DCC4"},{"n":"Rosa Lila","h":"#D8A5C4"},{"n":"Rosa Piedra","h":"#C9A6A6"},{"n":"Rubor","h":"#FFB6B0"},{"n":"Taupe","h":"#967B68"},{"n":"Tiza","h":"#F5F2E7"},{"n":"Verde Azulado","h":"#008B8B"},{"n":"Verde Olivo/Marfil","h":"#556B2F"},{"n":"Wine Red","h":"#751a1a"},{"n":"Light blue","h":"#60a9e1"},{"n":"Dark pink","h":"#e15699"},{"n":"Dark Blue","h":"#1446db"},{"n":"Blue","h":"#3498DB"},{"n":"Red","h":"#eb1e1e"},{"n":"Black","h":"#272020"},{"n":"White","h":"#fdf7f7"},{"n":"Purple","h":"#eda6e7"},{"n":"Pink","h":"#f287d9"},{"n":"Yellow","h":"#e1c823"},{"n":"Rojo","h":"#FF0000"},{"n":"Verde","h":"#008000"},{"n":"Azul","h":"#0000FF"},{"n":"Stone","h":"#5D91BF"},{"n":"Bleanch","h":"#B3E5FC"},{"n":"Gris","h":"#808080"},{"n":"Negro","h":"#000000"},{"n":"Crudo","h":"#F5F5DC"},{"n":"Blanco","h":"#FFFFFF"},{"n":"Café","h":"#8B4513"},{"n":"Beige","h":"#F5F5DC"},{"n":"Arena","h":"#D2B48C"},{"n":"Naranja","h":"#FFA500"},{"n":"Amarillo","h":"#FFD700"},{"n":"Rosa","h":"#FFB6C1"},{"n":"Lila","h":"#C8A2C8"},{"n":"Morado","h":"#800080"},{"n":"Khaki","h":"#C3B091"},{"n":"Malva","h":"#E0B0FF"},{"n":"Azul Cielo","h":"#87CEEB"},{"n":"Azul Marino","h":"#001F5B"},{"n":"Camel","h":"#C19A6B"},{"n":"Negro Piel","h":"#1C1008"},{"n":"Stone Wash Dark","h":"#3B4F6B"},{"n":"Stone Wash Medio","h":"#6B82A0"},{"n":"Verde Brillante","h":"#39FF14"},{"n":"Verde Olivo","h":"#6B8E23"},{"n":"En Crudo","h":"#EDE8D0"},{"n":"Palo de Rosa","h":"#E8B4B8"},{"n":"Beanch","h":"#F5E6C8"},{"n":"Coral","h":"#FF7F7F"},{"n":"Terracota","h":"#C06040"},{"n":"Menta","h":"#98FF98"},{"n":"Turquesa","h":"#40E0D0"},{"n":"Dorado","h":"#FFD700"},{"n":"Plata","h":"#C0C0C0"},{"n":"Vino","h":"#722F37"},{"n":"Borgoña","h":"#800020"},{"n":"Durazno","h":"#FFCBA4"},{"n":"Aqua","h":"#00FFFF"},{"n":"Multicolor","h":"#FF69B4"},{"n":"Estampado","h":"#9E9E9E"},{"n":"Lavanda","h":"#E6E6FA"},{"n":"Salmon","h":"#FA8072"},{"n":"Hueso","h":"#F9F6EE"},{"n":"Indigo","h":"#4B0082"},{"n":"Mostaza","h":"#FFDB58"},{"n":"Caqui","h":"#BDB76B"},{"n":"Celeste","h":"#B2FFFF"},{"n":"Marino","h":"#003153"},{"n":"Mezclilla","h":"#4A6D8C"},{"n":"Stone Claro","h":""},{"n":"Stone Medio","h":""},{"n":"Stone Obscuro","h":""},{"n":"Mamey","h":""},{"n":"Metalico","h":""},{"n":"Guinda","h":""},{"n":"Bordo","h":""},{"n":"camel","h":""},{"n":"Fiusha","h":"#bb298e"},{"n":"Gris Claro","h":""},{"n":"Gris Obscuro","h":""},{"n":"Verde Militar","h":""},{"n":"Azul Rey","h":""},{"n":"Rojo vino","h":""},{"n":"khaki","h":""},{"n":"Stone Wash Claro","h":""},{"n":"Marfil","h":""},{"n":"Verde menta","h":""},{"n":"Crema","h":""},{"n":"Beigue Piedra","h":""},{"n":"Toffe (Caramelo Café)","h":""},{"n":"Concrete Stone Medio","h":""},{"n":"Único","h":""},{"n":"Champague","h":"#f4eacd"}],"tallas":["S","S/M","XS","M/L","XL","1","XXL","3","5","7","9","11","13","15","17","19","4","6","8","10","12","14","16","M","L","28","30","32","34","36","38","40","XS/S","L/XL","Única","1X","2X","3X","4X","24 XL","Unitalla","0","CERO","UNITALLA","0","18","20","22","24"],"color_freq":[["Stone Obscuro",476],["Stone Medio",360],["Stone Claro",287],["Negro",276],["Blanco",145],["Verde",115],["Stone",92],["Beige",89],["Rosa",82],["Café",82],["Azul",79],["Gris",66],["Black",52],["khaki",50],["Rojo",50]]};
+
+  // colores del catálogo sin html_color en Odoo → tono aproximado para el swatch
+  const HEX_FIX={'Stone Claro':'#A8BDD0','Stone Medio':'#6B82A0','Stone Obscuro':'#3B4F6B',
+    'Mamey':'#E8A33D','Metalico':'#B0B0B8','Guinda':'#7B1E3B','Bordo':'#5C1A2E','camel':'#C19A6B',
+    'Gris Claro':'#C8CDD2','Gris Obscuro':'#55595E','Verde Militar':'#4B5320','Azul Rey':'#1A3FA8',
+    'Rojo vino':'#722F37','khaki':'#C3B091','Stone Wash Claro':'#9FB6CC','Marfil':'#F2EFE1',
+    'Verde menta':'#98D8C1','Crema':'#F3E9D2','Beigue Piedra':'#D6C7B0','Toffe (Caramelo Café)':'#B08050',
+    'Concrete Stone Medio':'#8A9BA8','Único':'#E5E7EB'};
+  function hexDe(nombre){
+    const c=ODOO.colores.find(x=>x.n===nombre);
+    return (c&&c.h)||HEX_FIX[nombre]||'#d1d5db';
+  }
+
+  // ---------- tallas: agrupación por tipo de corrida ----------
+  function grupoDe(t){
+    if(/unitalla|única|cero/i.test(t))return 'Unitalla';
+    const n=parseFloat(t);
+    if(isNaN(n))return 'Letras';
+    if(n>=28)return 'Pants 28-40';
+    return n%2===1?'Junior impares':'Pares 0-24';
+  }
+  const GRUPOS={};
+  const ORDEN_G=['Junior impares','Letras','Pares 0-24','Pants 28-40','Unitalla'];
+  [...new Set(ODOO.tallas)].forEach(t=>{
+    const g=grupoDe(t);(GRUPOS[g]=GRUPOS[g]||[]).push(t);
+  });
+  const numOrd=(a,b)=>{
+    const na=parseFloat(a),nb=parseFloat(b);
+    if(!isNaN(na)&&!isNaN(nb))return na-nb;
+    return String(a).localeCompare(String(b));
   };
+  Object.values(GRUPOS).forEach(arr=>arr.sort(numOrd));
+
+  let grupoActivo='Junior impares';
+  const tallasSel=new Set(), coloresSel=new Set();
+
+  function pintaGrupos(){
+    const cont=document.getElementById('segGrupos');
+    cont.innerHTML='';
+    ORDEN_G.filter(g=>GRUPOS[g]).forEach(g=>{
+      const b=document.createElement('div');
+      b.className='seg'+(g===grupoActivo?' on':'');
+      const nSel=GRUPOS[g].filter(t=>tallasSel.has(t)).length;
+      b.innerHTML=g+(nSel?'<span class="cnt">'+nSel+'</span>':'');
+      b.onclick=()=>{grupoActivo=g;pintaGrupos();pintaTallas();};
+      cont.appendChild(b);
+    });
+  }
+  function pintaTallas(){
+    const cont=document.getElementById('chipsTallas');
+    cont.innerHTML='';
+    (GRUPOS[grupoActivo]||[]).forEach(t=>{
+      const d=document.createElement('div');
+      d.className='ch'+(tallasSel.has(t)?' on':'');d.textContent=t;
+      d.onclick=()=>{tallasSel.has(t)?tallasSel.delete(t):tallasSel.add(t);pintaGrupos();pintaTallas();cuentaVariantes();};
+      cont.appendChild(d);
+    });
+    pintaSelLine();
+  }
+  function pintaSelLine(){
+    const el=document.getElementById('tallasSelTxt');
+    el.innerHTML=tallasSel.size
+      ?'<b>'+tallasSel.size+' talla'+(tallasSel.size>1?'s':'')+':</b> '+[...tallasSel].sort(numOrd).join(', ')
+      :'Toca las tallas que llegaron, o usa "Toda la corrida"';
+  }
+  function corridaCompleta(){
+    (GRUPOS[grupoActivo]||[]).forEach(t=>tallasSel.add(t));
+    pintaGrupos();pintaTallas();cuentaVariantes();
+  }
+  function limpiaGrupo(){
+    (GRUPOS[grupoActivo]||[]).forEach(t=>tallasSel.delete(t));
+    pintaGrupos();pintaTallas();cuentaVariantes();
+  }
   function toggleTallas(){
     const sw=document.getElementById('swTallas');
     sw.classList.toggle('on');
     document.getElementById('zonaTallas').style.display=sw.classList.contains('on')?'block':'none';
+    if(sw.classList.contains('on')){pintaGrupos();pintaTallas();pintaColorFrec();pintaColoresSel();}
     cuentaVariantes();
   }
-  function preset(tipo,el){
-    document.querySelectorAll('.preset').forEach(p=>p.classList.remove('on'));
-    el.classList.add('on');
-    const cont=document.getElementById('chipsTallas');
+
+  // ---------- colores ----------
+  function chipColor(nombre,activo,onclick){
+    const d=document.createElement('div');
+    d.className='ch'+(activo?' on':'');
+    d.innerHTML='<span class="sw-c" style="background:'+hexDe(nombre)+'"></span>'+nombre;
+    d.onclick=onclick;
+    return d;
+  }
+  function toggleColor(n){
+    coloresSel.has(n)?coloresSel.delete(n):coloresSel.add(n);
+    pintaColorFrec();pintaColoresSel();cuentaVariantes();
+    if(document.getElementById('ovColores').classList.contains('on'))pintaListaColores();
+  }
+  function pintaColorFrec(){
+    const cont=document.getElementById('colorFrec');
     cont.innerHTML='';
-    CORRIDAS[tipo].forEach(t=>{
-      const d=document.createElement('div');
-      d.className='ch on';d.textContent=t;
-      d.onclick=()=>{d.classList.toggle('on');cuentaVariantes();};
+    ODOO.color_freq.slice(0,10).forEach(([n])=>{
+      cont.appendChild(chipColor(n,coloresSel.has(n),()=>toggleColor(n)));
+    });
+  }
+  function pintaColoresSel(){
+    const cont=document.getElementById('coloresSelZona');
+    cont.innerHTML='';
+    const extras=[...coloresSel].filter(n=>!ODOO.color_freq.slice(0,10).some(([f])=>f===n));
+    extras.forEach(n=>{
+      const d=chipColor(n,true,()=>toggleColor(n));
+      d.innerHTML+=' <span class="x">✕</span>';
       cont.appendChild(d);
     });
-    cuentaVariantes();
   }
-  function toggleChip(el){el.classList.toggle('on');cuentaVariantes();}
+  function abreColores(){
+    document.getElementById('ovColores').classList.add('on');
+    document.getElementById('buscaColor').value='';
+    pintaListaColores();
+  }
+  function cierraColores(){
+    document.getElementById('ovColores').classList.remove('on');
+    pintaColorFrec();pintaColoresSel();cuentaVariantes();
+  }
+  function pintaListaColores(){
+    const q=document.getElementById('buscaColor').value.toLowerCase();
+    const cont=document.getElementById('listaColores');
+    cont.innerHTML='';
+    ODOO.colores.filter(c=>c.n.toLowerCase().includes(q)).forEach(c=>{
+      const d=document.createElement('div');
+      d.className='item-color'+(coloresSel.has(c.n)?' on':'');
+      d.innerHTML='<span class="sw-c" style="background:'+hexDe(c.n)+'"></span>'+c.n;
+      d.onclick=()=>toggleColor(c.n);
+      cont.appendChild(d);
+    });
+    document.getElementById('btnColoresListo').textContent=
+      coloresSel.size?'Listo ('+coloresSel.size+' color'+(coloresSel.size>1?'es':'')+')':'Listo';
+  }
+
   function cuentaVariantes(){
     const res=document.getElementById('resVar');
     if(!document.getElementById('swTallas').classList.contains('on')){res.style.display='none';return;}
-    const t=document.querySelectorAll('#chipsTallas .ch.on').length;
-    const c=document.querySelectorAll('#chipsColores .ch.on').length;
+    const t=tallasSel.size,c=coloresSel.size;
     const total=t*(c||1);
     if(t===0){res.style.display='none';return;}
     res.style.display='block';
@@ -693,8 +891,8 @@
     if(primero){primero.scrollIntoView({behavior:'smooth',block:'center'});return;}
 
     const v=id=>document.getElementById(id).value;
-    const tallas=[...document.querySelectorAll('#chipsTallas .ch.on')].map(e=>e.textContent);
-    const colores=[...document.querySelectorAll('#chipsColores .ch.on')].map(e=>e.textContent);
+    const tallas=[...tallasSel].sort(numOrd);
+    const colores=[...coloresSel];
     const conTallas=document.getElementById('swTallas').classList.contains('on')&&tallas.length;
     const nVar=conTallas?tallas.length*(colores.length||1):1;
     const fotos=[['fotoProv','proveedor'],['fotoDel','delantera'],['fotoTra','trasera']]
@@ -710,7 +908,7 @@
       ['Mayoreo / Menudeo','$'+(+v('inMayoreo')).toFixed(2)+' / $'+(+v('inMenudeo')).toFixed(2)],
       ['Impuesto',v('inIva')],
       ['POS',document.getElementById('swPos').classList.contains('on')?'✅ Disponible':'—'],
-      ['Variantes',conTallas?nVar+' ('+tallas.join(', ')+(colores.length?' × '+colores.join(', '):'')+')':'Sin tallas'],
+      ['Variantes',conTallas?nVar+' — tallas '+tallas.join(', ')+(colores.length?' × '+colores.join(', '):''):'Sin tallas'],
       ['Inventario inicial',v('inCant')?v('inCant')+' pzas':'—']
     ];
     document.getElementById('tablaResumen').innerHTML=
@@ -723,6 +921,10 @@
     ['inNombre','inSku','inCosto','inPaquete','inCorrida','inMayoreo','inMenudeo','inCant'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('inCategoria').value='';
     document.getElementById('inMarca').value='';
+    tallasSel.clear();coloresSel.clear();
+    if(document.getElementById('swTallas').classList.contains('on')){
+      pintaGrupos();pintaTallas();pintaColorFrec();pintaColoresSel();cuentaVariantes();
+    }
     document.getElementById('cajaMargen').style.display='none';
     ['fotoProv','fotoDel','fotoTra'].forEach(id=>{
       const f=document.getElementById(id);f.classList.remove('lista');f.textContent='＋';
