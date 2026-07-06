@@ -28,7 +28,7 @@ from .config import settings
 from .imaging import to_webp
 from .odoo import get_auth_odoo, get_odoo
 from .openai_images import generate_pose
-from .prompts import TIPOS, build_prompt, poses_for
+from .prompts import REFUERZO_SEGURO, TIPOS, build_prompt, poses_for
 
 app = FastAPI(title="Automatización de imágenes de producto")
 log = logging.getLogger("automatizacion")
@@ -138,6 +138,31 @@ def _prune(max_age: float = 7200) -> None:
             _jobs.pop(k, None)
 
 
+def _generar_pose(these_refs, tipo, descripcion, pose, con_ancla):
+    """Genera una pose. Si OpenAI la rechaza por MODERACIÓN, reintenta con un
+    prompt recatado y pose neutra. Devuelve el PNG, o None si aun así queda
+    bloqueada (se omite esa pose sin tumbar el trabajo entero).
+    Otros errores (cuota, red, formato) se propagan como siempre.
+    """
+    prompt = build_prompt(tipo, descripcion, pose, anchor=con_ancla)
+    try:
+        return generate_pose(these_refs, prompt)
+    except Exception as e:  # noqa: BLE001
+        msg = str(e).lower()
+        if "moderation" not in msg and "safety" not in msg:
+            raise
+        safe = (build_prompt(tipo, descripcion,
+                             "de pie, frontal, postura neutra y recatada",
+                             anchor=con_ancla) + " " + REFUERZO_SEGURO)
+        try:
+            return generate_pose(these_refs, safe)
+        except Exception as e2:  # noqa: BLE001
+            m2 = str(e2).lower()
+            if "moderation" in m2 or "safety" in m2:
+                return None
+            raise
+
+
 def _process_job(job_id: str, reference_id: int, tipo: str,
                  descripcion: str, refs: list[bytes],
                  variant_ids: list[int] | None = None,
@@ -153,14 +178,25 @@ def _process_job(job_id: str, reference_id: int, tipo: str,
         # referencia extra en las siguientes, para que todas mantengan la misma
         # modelo, calzado, styling y colores (efecto "una sola sesión").
         anchor_png: bytes | None = None
+        omitidas = 0
         for i, pose in enumerate(poses, 1):
-            prompt = build_prompt(tipo, descripcion, pose, anchor=anchor_png is not None)
             these_refs = refs if anchor_png is None else refs + [anchor_png]
-            png = generate_pose(these_refs, prompt)
+            png = _generar_pose(these_refs, tipo, descripcion, pose,
+                                anchor_png is not None)
+            if png is None:                 # bloqueada por moderación: se omite
+                omitidas += 1
+                _update(job_id, done=i,
+                        etapa=f"Pose {i}/{total} omitida (moderación)")
+                continue
             if anchor_png is None:
-                anchor_png = png       # la 1ª pose marca el estilo del resto
+                anchor_png = png            # la 1ª pose válida marca el estilo
             webps.append(to_webp(png, code=codigo))
             _update(job_id, done=i, etapa=f"Generando pose {i} de {total}…")
+
+        if not webps:
+            raise RuntimeError(
+                "OpenAI rechazó todas las poses por moderación. "
+                "Prueba con otra prenda o encuadre.")
 
         _update(job_id, etapa="Subiendo imágenes a Odoo…")
         odoo = get_odoo()
@@ -175,7 +211,8 @@ def _process_job(job_id: str, reference_id: int, tipo: str,
         if settings.odoo_tag_ready:
             odoo.add_tag(reference_id, settings.odoo_tag_ready)
 
-        _update(job_id, estado="listo", imagenes=len(webps), etapa="Listo")
+        nota = f" ({omitidas} omitidas)" if omitidas else ""
+        _update(job_id, estado="listo", imagenes=len(webps), etapa="Listo" + nota)
     except Exception as e:  # noqa: BLE001
         log.exception("Fallo generando/subiendo imágenes (ref=%s, tipo=%s)",
                       reference_id, tipo)

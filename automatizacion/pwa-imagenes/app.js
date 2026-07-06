@@ -271,13 +271,18 @@ function esIndeterminada(j) {
 async function refreshCola() {
   let jobs;
   try { jobs = await api("/jobs"); } catch (e) { return; }
+  // Los ya terminados ("listo") se quitan de la lista: solo quedan los
+  // pendientes/en proceso y los que fallaron (para poder reintentarlos).
+  jobs = jobs.filter((j) => j.estado !== "listo");
   const panel = $("cola");
   if (!jobs.length) { panel.hidden = true; ultimoActivos = 0; return; }
   panel.hidden = false;
   ultimoActivos = jobs.filter(
     (j) => j.estado === "en_cola" || j.estado === "procesando").length;
+  const errores = jobs.filter((j) => j.estado === "error").length;
   $("cola-head").textContent =
-    `Cola de generación · ${ultimoActivos} pendientes · ${jobs.length} en total`;
+    `Cola de generación · ${ultimoActivos} pendientes` +
+    (errores ? ` · ${errores} con error` : "");
   $("cola-lista").innerHTML = jobs.map((j) => {
     const cls = j.estado === "listo" ? " ok" : j.estado === "error" ? " error" : "";
     const rell = "relleno" + (esIndeterminada(j) ? " indeterminada" : "");

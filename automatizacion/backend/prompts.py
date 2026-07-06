@@ -45,6 +45,14 @@ DECORO = (
     "sugerente: es una imagen de producto de moda apta para catálogo."
 )
 
+# Refuerzo que se añade al REINTENTAR una pose que OpenAI rechazó por moderación.
+REFUERZO_SEGURO = (
+    "IMAGEN DE CATÁLOGO ABSOLUTAMENTE RECATADA Y NO SUGERENTE: postura de pie, "
+    "natural, sobria y profesional; sin poses insinuantes, sin enfatizar glúteos, "
+    "caderas ni entrepierna, sin primeros planos del cuerpo. Encuadre neutro que "
+    "solo muestra la prenda como producto. Apta para una tienda online familiar."
+)
+
 # Para cada tipo: el encuadre base + la lista de poses (una imagen por pose).
 TIPOS: dict[str, dict] = {
     "superior": {

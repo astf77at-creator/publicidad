@@ -1,6 +1,6 @@
 // Service worker: shell instalable, pero el HTML se sirve SIEMPRE desde la red
 // (network-first) para no quedar atrapado en un index.html viejo cacheado.
-const CACHE = "imagenes-v14";  // v14: lista de cola compartida y persistente (desde el backend)
+const CACHE = "imagenes-v15";  // v15: quita terminados de la lista + resiliencia de moderación
 const SHELL = ["./", "index.html", "styles.css", "app.js", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
