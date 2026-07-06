@@ -173,20 +173,24 @@
   .fila{display:flex;gap:10px;}
   .fila .campo{flex:1;}
 
-  /* foto */
-  .foto-zona{
-    display:flex;gap:10px;align-items:center;
-  }
+  /* fotos */
+  .fotos-grid{display:flex;gap:9px;}
+  .foto-slot{flex:1;text-align:center;}
   .foto-cuadro{
-    width:86px;height:86px;border-radius:14px;flex-shrink:0;
+    width:100%;aspect-ratio:1/1;border-radius:14px;
     border:2px dashed #cbd5e1;background:#f8fafc;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    font-size:26px;cursor:pointer;color:#94a3b8;transition:.15s;
+    font-size:24px;cursor:pointer;color:#94a3b8;transition:.15s;
     overflow:hidden;
   }
   .foto-cuadro:hover{border-color:var(--azul-claro);color:var(--azul-claro);}
-  .foto-cuadro.lista{border-style:solid;border-color:var(--verde);font-size:40px;background:#f0fdf4;}
-  .foto-txt{font-size:12px;color:var(--gris);line-height:1.4;}
+  .foto-cuadro.lista{border-style:solid;border-color:var(--verde);font-size:34px;background:#f0fdf4;}
+  .foto-slot .fl{
+    font-size:10.5px;font-weight:800;color:var(--gris);
+    margin-top:5px;letter-spacing:.3px;text-transform:uppercase;line-height:1.3;display:block;
+  }
+  .foto-slot .fl em{display:block;font-style:normal;font-weight:600;color:#94a3b8;font-size:9.5px;text-transform:none;}
+  .foto-txt{font-size:11.5px;color:var(--gris);line-height:1.45;margin-top:10px;}
 
   /* barcode */
   .barcode-fila{display:flex;gap:8px;}
@@ -345,7 +349,7 @@
       <h3>🟡 Recomendados <span class="etq a">CON VALOR POR DEFECTO</span></h3>
       <p class="sub">La pantalla los pre-llena con lo más común en tu tienda; solo los cambias si aplica.</p>
       <table>
-        <tr><td>Foto</td><td>Se toma con la cámara del teléfono al momento</td></tr>
+        <tr><td>Fotos (3)</td><td>Proveedor (opcional) + producto delantero + producto trasero, tomadas con la cámara</td></tr>
         <tr><td>Tipo</td><td>Pre-fijado en "Almacenable" (controla existencias). No se muestra, va por dentro</td></tr>
         <tr><td>Impuesto</td><td>Pre-fijado IVA 16% incluido en el precio</td></tr>
         <tr><td>Disponible en POS</td><td>Encendido por defecto — para eso lo estás dando de alta</td></tr>
@@ -388,13 +392,24 @@
 
         <div class="form-scroll" id="formScroll">
 
-          <!-- FOTO -->
+          <!-- FOTOS -->
           <div class="bloque">
-            <h4>📷 Foto del producto</h4>
-            <div class="foto-zona">
-              <div class="foto-cuadro" id="fotoCuadro" onclick="tomarFoto()">＋</div>
-              <div class="foto-txt">Toca el cuadro para <b>tomar la foto con la cámara</b> o elegirla de la galería. Se sube a Odoo como imagen principal.</div>
+            <h4>📷 Fotos del producto</h4>
+            <div class="fotos-grid">
+              <div class="foto-slot">
+                <div class="foto-cuadro" id="fotoProv" onclick="tomarFoto(this,'🏭')">＋</div>
+                <span class="fl">Proveedor<em>opcional</em></span>
+              </div>
+              <div class="foto-slot">
+                <div class="foto-cuadro" id="fotoDel" onclick="tomarFoto(this,'👚')">＋</div>
+                <span class="fl">Delantero<em>producto</em></span>
+              </div>
+              <div class="foto-slot">
+                <div class="foto-cuadro" id="fotoTra" onclick="tomarFoto(this,'🔄')">＋</div>
+                <span class="fl">Trasero<em>producto</em></span>
+              </div>
             </div>
+            <div class="foto-txt">Toca cada cuadro para <b>tomar la foto con la cámara</b> o elegirla de la galería. La del proveedor (catálogo/factura) puede existir o no; la <b>delantera</b> se usa como imagen principal en Odoo y el POS, la <b>trasera</b> queda como imagen extra.</div>
           </div>
 
           <!-- DATOS BÁSICOS -->
@@ -575,7 +590,8 @@
   <table class="tabla-mapeo">
     <tr><th>Campo en la pantalla</th><th>Campo en Odoo (product.template)</th><th>Detalle</th></tr>
     <tr><td>Nombre</td><td><code>name</code></td><td>Único obligatorio por sistema en Odoo</td></tr>
-    <tr><td>Foto</td><td><code>image_1920</code></td><td>Imagen base64 tomada con la cámara</td></tr>
+    <tr><td>Foto delantera</td><td><code>image_1920</code></td><td>Imagen principal del producto (la que ve el POS)</td></tr>
+    <tr><td>Foto trasera y de proveedor</td><td><code>product_template_image_ids</code></td><td>Imágenes extra del producto (galería); la de proveedor puede omitirse</td></tr>
     <tr><td>Categoría</td><td><code>categ_id</code> + <code>pos_categ_ids</code></td><td>Una sola selección llena ambas (interna y POS)</td></tr>
     <tr><td>Código de barras</td><td><code>barcode</code></td><td>Validación de unicidad antes de crear</td></tr>
     <tr><td>Referencia interna</td><td><code>default_code</code></td><td>SKU auto: prefijo de categoría + consecutivo</td></tr>
@@ -592,10 +608,9 @@
 </div>
 
 <script>
-  // ---------- foto ----------
-  function tomarFoto(){
-    const f=document.getElementById('fotoCuadro');
-    f.classList.add('lista');f.textContent='👚';
+  // ---------- fotos ----------
+  function tomarFoto(el,emoji){
+    el.classList.add('lista');el.textContent=emoji;
   }
 
   // ---------- escáner ----------
@@ -683,8 +698,11 @@
     const colores=[...document.querySelectorAll('#chipsColores .ch.on')].map(e=>e.textContent);
     const conTallas=document.getElementById('swTallas').classList.contains('on')&&tallas.length;
     const nVar=conTallas?tallas.length*(colores.length||1):1;
+    const fotos=[['fotoProv','proveedor'],['fotoDel','delantera'],['fotoTra','trasera']]
+      .filter(([id])=>document.getElementById(id).classList.contains('lista')).map(([,n])=>n);
     const filas=[
       ['Producto',v('inNombre')],
+      ['Fotos',fotos.length?fotos.length+' ('+fotos.join(', ')+')':'—'],
       ['Categoría',document.getElementById('inCategoria').selectedOptions[0].text],
       ['Código de barras',v('inBarcode')],
       ['SKU',v('inSku')||'—'],
@@ -704,7 +722,9 @@
     ['inNombre','inBarcode','inSku','inCosto','inPrecio','inCant'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('inCategoria').value='';
     document.getElementById('cajaMargen').style.display='none';
-    const f=document.getElementById('fotoCuadro');f.classList.remove('lista');f.textContent='＋';
+    ['fotoProv','fotoDel','fotoTra'].forEach(id=>{
+      const f=document.getElementById(id);f.classList.remove('lista');f.textContent='＋';
+    });
     document.getElementById('formScroll').scrollTo({top:0,behavior:'smooth'});
   }
 </script>
