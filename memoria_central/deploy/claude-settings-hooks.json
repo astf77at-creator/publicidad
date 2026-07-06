@@ -1,0 +1,27 @@
+{
+  "_comentario": "Pegar el contenido de \"hooks\" en ~/.claude/settings.json (settings de usuario). Si ya tienes una clave \"hooks\", fusiona estos eventos. Stop y SessionEnd no usan matcher de herramienta.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/memoria_central/hooks/hook_memoria.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/memoria_central/hooks/hook_memoria.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
