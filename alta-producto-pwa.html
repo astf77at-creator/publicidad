@@ -439,7 +439,7 @@
                 <span class="fl">Trasero<em>producto</em></span>
               </div>
             </div>
-            <div class="foto-txt">Toca cada cuadro para <b>tomar la foto con la cámara</b> o elegirla de la galería. La del proveedor (catálogo/factura) puede existir o no; la <b>delantera</b> se usa como imagen principal en Odoo y el POS, la <b>trasera</b> queda como imagen extra.</div>
+            <div class="foto-txt">Toca cada cuadro para <b>tomar la foto con la cámara</b> o elegirla de la galería. La del proveedor (catálogo/factura) puede existir o no; la <b>delantera</b> se usa como imagen principal en Odoo y el POS, la <b>trasera</b> queda como imagen extra. Las tres entran al <b>mismo proceso de imágenes de la PWA</b> (compresión y subida a Odoo; se sirven después por el proxy de imágenes con caché).</div>
           </div>
 
           <!-- DATOS BÁSICOS -->
@@ -692,6 +692,28 @@
     <tr><td>Cantidad inicial</td><td><code>stock.quant</code> (ajuste)</td><td>Ajuste de inventario inicial en la ubicación de la tienda</td></tr>
   </table>
   </div>
+
+  <!-- ============ SECCIÓN 4: PROCESO DE IMÁGENES ============ -->
+  <h2 class="seccion"><span class="num">4</span> Integración con el proceso de imágenes de la PWA</h2>
+  <p class="intro">
+    Las fotos delantera y trasera <b>no inventan un camino nuevo</b>: se enganchan al mismo proceso de imágenes
+    que ya opera en la PWA (las imágenes viven en Odoo y la PWA las sirve a través de su proxy con caché,
+    el mismo que usa el catálogo de Captura de Pedidos, el bot Isabela y el sync a la página web).
+  </p>
+  <div class="scroll-x">
+  <table class="tabla-mapeo">
+    <tr><th>Paso</th><th>Qué pasa</th><th>Pieza existente que se reutiliza</th></tr>
+    <tr><td>1. Captura</td><td>La cámara del teléfono toma delantera / trasera / proveedor; la PWA <b>comprime y redimensiona</b> antes de subir (las fotos de celular pesan 5–12 MB; Odoo SaaS rate-limita)</td><td>Flujo de captura de la PWA</td></tr>
+    <tr><td>2. Subida</td><td>El backend de la PWA (VPS) recibe las fotos y las escribe en Odoo: delantera → <code>image_1920</code> del template; trasera y proveedor → registros <code>product.image</code> (galería)</td><td>Backend Express de la PWA con su sesión a Odoo</td></tr>
+    <tr><td>3. Servido</td><td>Desde ese momento las fotos se sirven por el <b>proxy de imágenes de la PWA</b> (<code>/api/products/:id/image</code>) con caché y manejo de rate-limit 429</td><td>Proxy de imágenes existente</td></tr>
+    <tr><td>4. Propagación</td><td>El resto del ecosistema las toma solo de Odoo: catálogo de Captura de Pedidos, bot Isabela (manda la foto por WhatsApp) y el sync Odoo→WooCommerce de la página (galería por hashes)</td><td>Pipelines existentes, sin cambios</td></tr>
+  </table>
+  </div>
+  <p class="intro" style="margin-top:14px">
+    ⚠️ <b>Por confirmar contra el código del VPS</b>: el nombre exacto de los endpoints de subida y el módulo de
+    compresión que ya use la PWA. Este entorno remoto no puede conectarse al VPS (la política de red bloquea
+    los dominios yoohoo.mx); la revisión fina se hace desde la sesión local o habilitando los dominios en el entorno.
+  </p>
 
 </div>
 
