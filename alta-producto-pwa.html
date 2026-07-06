@@ -192,15 +192,6 @@
   .foto-slot .fl em{display:block;font-style:normal;font-weight:600;color:#94a3b8;font-size:9.5px;text-transform:none;}
   .foto-txt{font-size:11.5px;color:var(--gris);line-height:1.45;margin-top:10px;}
 
-  /* barcode */
-  .barcode-fila{display:flex;gap:8px;}
-  .barcode-fila input{flex:1;}
-  .btn-scan{
-    background:var(--oscuro);color:var(--blanco);border:none;border-radius:10px;
-    padding:0 14px;font-size:18px;cursor:pointer;flex-shrink:0;
-  }
-  .btn-scan:active{transform:scale(.96);}
-
   /* margen */
   .margen-caja{
     background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;
@@ -330,7 +321,7 @@
   <h2 class="seccion"><span class="num">1</span> ¿Qué campos pide Odoo?</h2>
   <p class="intro">
     Odoo solo exige <b>un</b> campo para crear un producto: el nombre. Todo lo demás tiene valores por defecto.
-    Pero para que el producto <b>funcione en tu operación</b> (POS, escáner, inventario, comisiones), estos son
+    Pero para que el producto <b>funcione en tu operación</b> (POS, inventario, comisiones), estos son
     los campos que la pantalla trata como obligatorios, recomendados y opcionales:
   </p>
   <div class="tarjetas-campos">
@@ -340,7 +331,6 @@
       <table>
         <tr><td>Nombre</td><td>Único campo que Odoo exige por sistema. Ej. "Blusa manga larga rayas"</td></tr>
         <tr><td>Categoría</td><td>Una sola selección llena las 3 de Odoo: Punto de venta, eCommerce y General</td></tr>
-        <tr><td>Código de barras</td><td>Para cobrar con escáner en el POS. Debe ser único — la PWA lo valida contra Odoo</td></tr>
         <tr><td>Costo</td><td>Necesario para margen, valuación de inventario y merma</td></tr>
         <tr><td>Precios (4 listas)</td><td>Paquete, Corrida, Mayoreo y Menudeo — las listas de precios que se manejan por default</td></tr>
       </table>
@@ -373,7 +363,7 @@
   <h2 class="seccion"><span class="num">2</span> La interfase — mockup interactivo</h2>
   <p class="intro">
     Así se vería la pantalla en la PWA (me.yoohoo.mx). <b>Es funcional como demostración:</b> escribe un nombre,
-    pon precios, prueba el botón 📷 del código de barras, activa tallas y presiona <b>Guardar producto</b>.
+    pon el costo y los 4 precios, activa tallas y presiona <b>Guardar producto</b>.
     Si falta un campo obligatorio, lo marca en rojo.
   </p>
 
@@ -446,20 +436,6 @@
                 <option>Genérica / sin marca</option>
                 <option>＋ Agregar marca nueva…</option>
               </select>
-            </div>
-          </div>
-
-          <!-- CÓDIGO DE BARRAS -->
-          <div class="bloque">
-            <h4>🔢 Código de barras</h4>
-            <div class="campo" id="c-barcode">
-              <label>Código de barras <span class="req">*</span></label>
-              <div class="barcode-fila">
-                <input type="text" id="inBarcode" placeholder="Escanéalo o tecléalo" oninput="quitaError(this)">
-                <button class="btn-scan" onclick="escanear()" title="Escanear con la cámara">📷</button>
-              </div>
-              <div class="ayuda">El botón abre la cámara del teléfono como escáner. La PWA verifica que no exista ya en Odoo.</div>
-              <div class="msg-error">Captura o escanea el código de barras</div>
             </div>
           </div>
 
@@ -578,15 +554,9 @@
     <div class="notas-laterales">
       <div class="nota">
         <span class="titulo-nota">⚡ Pensada para alta rápida en tienda</span>
-        El flujo típico: llega mercancía → foto → escaneas el código → nombre, categoría, costo y precio → guardar.
+        El flujo típico: llega mercancía → fotos → nombre, categoría, costo y sus 4 precios → guardar.
         <b>Menos de 60 segundos por producto.</b> Los campos avanzados no estorban: van con valores por defecto
         o detrás de un interruptor.
-      </div>
-      <div class="nota">
-        <span class="titulo-nota">📷 Escáner con la cámara</span>
-        El botón junto al código de barras abre la cámara del teléfono como lector
-        (igual que el checador usa la cámara para otras cosas). Si el código ya existe en Odoo,
-        la PWA avisa <b>antes</b> de guardar para no duplicar productos.
       </div>
       <div class="nota">
         <span class="titulo-nota">📏 Corridas de talla</span>
@@ -622,8 +592,7 @@
     <tr><td>Foto trasera y de proveedor</td><td><code>product_template_image_ids</code></td><td>Imágenes extra del producto (galería); la de proveedor puede omitirse</td></tr>
     <tr><td>Categoría</td><td><code>categ_id</code> + <code>pos_categ_ids</code> + <code>public_categ_ids</code></td><td>Una sola selección llena las tres: General (interna), Punto de venta y eCommerce</td></tr>
     <tr><td>Marca</td><td><code>product_brand_id</code></td><td>Catálogo de marcas; si tecleas una nueva, se crea al vuelo</td></tr>
-    <tr><td>Código de barras</td><td><code>barcode</code></td><td>Validación de unicidad antes de crear</td></tr>
-    <tr><td>Referencia interna</td><td><code>default_code</code></td><td>SKU auto: prefijo de categoría + consecutivo</td></tr>
+    <tr><td>Referencia interna</td><td><code>default_code</code></td><td>SKU auto: prefijo de categoría + consecutivo. Identificador para buscar en el POS (no se usa código de barras)</td></tr>
     <tr><td>Costo</td><td><code>standard_price</code></td><td>Alimenta margen, valuación y control de merma</td></tr>
     <tr><td>Precio Menudeo</td><td><code>list_price</code></td><td>Precio base al público con IVA incluido (lista Menudeo)</td></tr>
     <tr><td>Precios Paquete / Corrida / Mayoreo</td><td><code>product.pricelist.item</code></td><td>Regla de precio fijo del producto en cada una de las 3 listas restantes</td></tr>
@@ -641,15 +610,6 @@
   // ---------- fotos ----------
   function tomarFoto(el,emoji){
     el.classList.add('lista');el.textContent=emoji;
-  }
-
-  // ---------- escáner ----------
-  function escanear(){
-    const inp=document.getElementById('inBarcode');
-    inp.value='750'+String(Math.floor(1e9+ (Date.now()%9e9))).slice(0,10);
-    quitaError(inp);
-    inp.style.background='#f0fdf4';
-    setTimeout(()=>inp.style.background='',600);
   }
 
   // ---------- SKU ----------
@@ -719,7 +679,7 @@
   function guardar(){
     const oblig=[
       ['c-nombre','inNombre'],['c-categoria','inCategoria'],
-      ['c-barcode','inBarcode'],['c-costo','inCosto'],
+      ['c-costo','inCosto'],
       ['c-paquete','inPaquete'],['c-corrida','inCorrida'],
       ['c-mayoreo','inMayoreo'],['c-menudeo','inMenudeo']
     ];
@@ -745,7 +705,6 @@
       ['Categoría (POS·eCom·Gral)',document.getElementById('inCategoria').selectedOptions[0].text],
       ['SKU',v('inSku')||'—'],
       ['Marca',v('inMarca')||'—'],
-      ['Código de barras',v('inBarcode')],
       ['Costo','$'+(+v('inCosto')).toFixed(2)],
       ['Paquete / Corrida','$'+(+v('inPaquete')).toFixed(2)+' / $'+(+v('inCorrida')).toFixed(2)],
       ['Mayoreo / Menudeo','$'+(+v('inMayoreo')).toFixed(2)+' / $'+(+v('inMenudeo')).toFixed(2)],
@@ -761,7 +720,7 @@
   function cerrarOverlay(){document.getElementById('overlay').classList.remove('on');}
   function otroProducto(){
     cerrarOverlay();
-    ['inNombre','inBarcode','inSku','inCosto','inPaquete','inCorrida','inMayoreo','inMenudeo','inCant'].forEach(id=>document.getElementById(id).value='');
+    ['inNombre','inSku','inCosto','inPaquete','inCorrida','inMayoreo','inMenudeo','inCant'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('inCategoria').value='';
     document.getElementById('inMarca').value='';
     document.getElementById('cajaMargen').style.display='none';
