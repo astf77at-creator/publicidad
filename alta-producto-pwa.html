@@ -634,7 +634,8 @@
       </div>
       <div class="nota">
         <span class="titulo-nota">📏 49 tallas, igual que los colores</span>
-        Las <b>10 tallas más vendidas</b> de tu tienda (5, S, M, 9, 7, L, 11, 1, 13, 3) aparecen directo como botones.
+        Las <b>10 tallas más vendidas</b> de tu tienda aparecen directo como botones, <b>en orden de talla</b>
+        (letras XS→XXXL primero, luego números ascendentes: S, M, L, 1, 3, 5, 7, 9, 11, 13).
         El resto está en el buscador, <b>organizado en 5 grupos de corrida</b>: Junior impares (1–19), Letras (XS–XXL, 1X–4X),
         Pares (0–24), Pants (28–40) y Unitalla — cada grupo con su botón "⚡ Toda la corrida" para marcar todo y
         desmarcar lo que no llegó. El contador azul dice cuántas variantes se crearán.
@@ -754,12 +755,20 @@
   [...new Set(ODOO.tallas)].forEach(t=>{
     const g=grupoDe(t);(GRUPOS[g]=GRUPOS[g]||[]).push(t);
   });
-  const numOrd=(a,b)=>{
-    const na=parseFloat(a),nb=parseFloat(b);
-    if(!isNaN(na)&&!isNaN(nb))return na-nb;
-    return String(a).localeCompare(String(b));
+  // orden de tallas: letras XS→XXXL (con combinadas y extendidas), números ascendentes
+  const ORDEN_LETRAS=['XS','XS/S','S','S/M','M','M/L','L','L/XL','XL','XXL','XXXL','1X','2X','3X','4X'];
+  function tallaKey(t){
+    const i=ORDEN_LETRAS.indexOf(String(t).toUpperCase().trim());
+    if(i>=0)return [0,i,''];
+    const n=parseFloat(t);
+    if(!isNaN(n))return [1,n,String(t)];
+    return [2,0,String(t).toLowerCase()];
+  }
+  const tallaOrd=(a,b)=>{
+    const ka=tallaKey(a),kb=tallaKey(b);
+    return ka[0]-kb[0]||ka[1]-kb[1]||ka[2].localeCompare(kb[2]);
   };
-  Object.values(GRUPOS).forEach(arr=>arr.sort(numOrd));
+  Object.values(GRUPOS).forEach(arr=>arr.sort(tallaOrd));
 
   const tallasSel=new Set(), coloresSel=new Set();
   const TALLA_FREC=ODOO.talla_freq.slice(0,10).map(([n])=>n);
@@ -778,12 +787,12 @@
   function pintaTallaFrec(){
     const cont=document.getElementById('tallaFrec');
     cont.innerHTML='';
-    TALLA_FREC.forEach(n=>cont.appendChild(chipTalla(n,()=>toggleTalla(n))));
+    [...TALLA_FREC].sort(tallaOrd).forEach(n=>cont.appendChild(chipTalla(n,()=>toggleTalla(n))));
   }
   function pintaTallasSel(){
     const cont=document.getElementById('tallasSelZona');
     cont.innerHTML='';
-    [...tallasSel].filter(n=>!TALLA_FREC.includes(n)).sort(numOrd).forEach(n=>{
+    [...tallasSel].filter(n=>!TALLA_FREC.includes(n)).sort(tallaOrd).forEach(n=>{
       const d=chipTalla(n,()=>toggleTalla(n));
       d.innerHTML+=' <span class="x">✕</span>';
       cont.appendChild(d);
@@ -916,7 +925,7 @@
     if(primero){primero.scrollIntoView({behavior:'smooth',block:'center'});return;}
 
     const v=id=>document.getElementById(id).value;
-    const tallas=[...tallasSel].sort(numOrd);
+    const tallas=[...tallasSel].sort(tallaOrd);
     const colores=[...coloresSel];
     const conTallas=document.getElementById('swTallas').classList.contains('on')&&tallas.length;
     const nVar=conTallas?tallas.length*(colores.length||1):1;
