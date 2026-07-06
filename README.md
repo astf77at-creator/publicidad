@@ -2,9 +2,10 @@
 
 Flyer publicitario en HTML/CSS para invitar a los clientes a descargar y usar nuestra app.
 
-## Archivo
+## Archivos
 
 - `flyer.html` — flyer autocontenido (sin dependencias), tamaño A4, listo para imprimir o exportar a PDF.
+- `alta-producto-pwa.html` — propuesta de diseño (mockup interactivo) de la pantalla de alta de productos para la PWA de YOOHOO: análisis de campos obligatorios de Odoo, interfase móvil funcional como demo y mapeo técnico de campos a `product.template`. Ábrelo en el navegador y prueba el formulario.
 
 ## Cómo personalizarlo
 

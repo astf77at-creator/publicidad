@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alta de Productos — Diseño PWA YOOHOO</title>
+<style>
+  :root{
+    --azul:#1e3a8a;
+    --azul-claro:#3b82f6;
+    --acento:#f59e0b;
+    --oscuro:#0f172a;
+    --gris:#475569;
+    --claro:#f1f5f9;
+    --blanco:#ffffff;
+    --verde:#16a34a;
+    --rojo:#dc2626;
+    --borde:#e2e8f0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:#e2e8f0;
+    color:var(--oscuro);
+    padding:24px 16px 64px;
+  }
+  .contenedor{max-width:1100px;margin:0 auto;}
+
+  /* ---------- CABECERA DEL DOCUMENTO ---------- */
+  .doc-hero{
+    background:linear-gradient(135deg,var(--azul) 0%,var(--azul-claro) 100%);
+    color:var(--blanco);
+    border-radius:18px;
+    padding:36px 40px;
+    margin-bottom:28px;
+    position:relative;
+    overflow:hidden;
+  }
+  .doc-hero::after{
+    content:"";position:absolute;right:-70px;top:-70px;
+    width:240px;height:240px;background:rgba(255,255,255,.08);border-radius:50%;
+  }
+  .doc-hero h1{font-size:34px;font-weight:800;margin-bottom:10px;}
+  .doc-hero h1 span{color:var(--acento);}
+  .doc-hero p{font-size:16px;opacity:.92;max-width:640px;line-height:1.5;}
+  .doc-hero .chip{
+    display:inline-block;background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.35);
+    padding:4px 14px;border-radius:999px;font-size:13px;font-weight:600;
+    margin-bottom:16px;letter-spacing:.5px;
+  }
+
+  h2.seccion{
+    font-size:22px;font-weight:800;color:var(--azul);
+    margin:36px 0 6px;display:flex;align-items:center;gap:10px;
+  }
+  h2.seccion .num{
+    background:var(--acento);color:var(--blanco);
+    width:32px;height:32px;border-radius:9px;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:16px;flex-shrink:0;
+  }
+  p.intro{color:var(--gris);margin-bottom:18px;font-size:15px;max-width:760px;line-height:1.55;}
+
+  /* ---------- TABLAS DE CAMPOS ---------- */
+  .tarjetas-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:16px;}
+  .tcampo{
+    background:var(--blanco);border-radius:14px;padding:20px 22px;
+    box-shadow:0 4px 14px rgba(15,23,42,.06);
+    border-top:5px solid var(--gris);
+  }
+  .tcampo.oblig{border-top-color:var(--rojo);}
+  .tcampo.recom{border-top-color:var(--acento);}
+  .tcampo.opc{border-top-color:var(--azul-claro);}
+  .tcampo h3{font-size:16px;margin-bottom:4px;}
+  .tcampo .sub{font-size:12.5px;color:var(--gris);margin-bottom:14px;line-height:1.45;}
+  .tcampo table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  .tcampo td{padding:7px 6px;border-bottom:1px solid var(--claro);vertical-align:top;line-height:1.4;}
+  .tcampo td:first-child{font-weight:700;white-space:nowrap;padding-right:12px;}
+  .tcampo td:last-child{color:var(--gris);}
+  .tcampo tr:last-child td{border-bottom:none;}
+  .etq{
+    display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.4px;
+    padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle;
+  }
+  .etq.r{background:#fee2e2;color:var(--rojo);}
+  .etq.a{background:#fef3c7;color:#b45309;}
+  .etq.b{background:#dbeafe;color:#1d4ed8;}
+
+  /* ---------- LAYOUT MOCKUP ---------- */
+  .zona-mockup{
+    display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;
+    justify-content:center;margin-top:18px;
+  }
+  .notas-laterales{flex:1;min-width:300px;max-width:420px;display:flex;flex-direction:column;gap:14px;}
+  .nota{
+    background:var(--blanco);border-radius:12px;padding:16px 18px;
+    box-shadow:0 4px 14px rgba(15,23,42,.06);
+    font-size:13.5px;line-height:1.5;color:var(--gris);
+    border-left:4px solid var(--acento);
+  }
+  .nota b{color:var(--oscuro);}
+  .nota .titulo-nota{font-size:14px;font-weight:800;color:var(--azul);display:block;margin-bottom:5px;}
+
+  /* ---------- TELÉFONO ---------- */
+  .telefono{
+    width:390px;flex-shrink:0;
+    background:var(--oscuro);
+    border-radius:44px;
+    padding:14px;
+    box-shadow:0 24px 60px rgba(15,23,42,.35);
+  }
+  .pantalla{
+    background:#f6f7fb;
+    border-radius:32px;
+    overflow:hidden;
+    height:760px;
+    display:flex;flex-direction:column;
+    position:relative;
+  }
+  .notch{
+    height:26px;background:var(--oscuro);border-radius:0 0 16px 16px;
+    width:150px;margin:0 auto;flex-shrink:0;position:absolute;left:50%;transform:translateX(-50%);top:0;z-index:30;
+  }
+
+  .app-header{
+    background:linear-gradient(135deg,var(--azul) 0%,var(--azul-claro) 100%);
+    color:var(--blanco);
+    padding:38px 18px 14px;
+    flex-shrink:0;
+    display:flex;align-items:center;gap:12px;
+  }
+  .app-header .atras{
+    width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.18);
+    display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;
+  }
+  .app-header .titulo{font-size:17px;font-weight:800;}
+  .app-header .subtitulo{font-size:11.5px;opacity:.85;}
+
+  .form-scroll{
+    flex:1;overflow-y:auto;padding:14px 14px 90px;
+    scrollbar-width:thin;
+  }
+
+  .bloque{
+    background:var(--blanco);border-radius:14px;
+    padding:14px;margin-bottom:12px;
+    box-shadow:0 2px 8px rgba(15,23,42,.05);
+  }
+  .bloque h4{
+    font-size:12px;letter-spacing:.8px;color:var(--azul);
+    text-transform:uppercase;margin-bottom:10px;font-weight:800;
+    display:flex;align-items:center;gap:6px;
+  }
+  .campo{margin-bottom:10px;}
+  .campo:last-child{margin-bottom:0;}
+  .campo label{
+    display:block;font-size:12.5px;font-weight:700;color:var(--oscuro);margin-bottom:4px;
+  }
+  .campo label .req{color:var(--rojo);font-weight:800;}
+  .campo label .opt{color:#94a3b8;font-weight:600;font-size:11px;}
+  .campo input[type=text],.campo input[type=number],.campo select{
+    width:100%;padding:10px 12px;font-size:14px;
+    border:1.5px solid var(--borde);border-radius:10px;
+    background:#fbfcfe;outline:none;font-family:inherit;color:var(--oscuro);
+  }
+  .campo input:focus,.campo select:focus{border-color:var(--azul-claro);background:var(--blanco);}
+  .campo.error input,.campo.error select{border-color:var(--rojo);background:#fef2f2;}
+  .campo .ayuda{font-size:11px;color:#94a3b8;margin-top:3px;line-height:1.35;}
+  .campo .msg-error{font-size:11px;color:var(--rojo);margin-top:3px;font-weight:700;display:none;}
+  .campo.error .msg-error{display:block;}
+
+  .fila{display:flex;gap:10px;}
+  .fila .campo{flex:1;}
+
+  /* foto */
+  .foto-zona{
+    display:flex;gap:10px;align-items:center;
+  }
+  .foto-cuadro{
+    width:86px;height:86px;border-radius:14px;flex-shrink:0;
+    border:2px dashed #cbd5e1;background:#f8fafc;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:26px;cursor:pointer;color:#94a3b8;transition:.15s;
+    overflow:hidden;
+  }
+  .foto-cuadro:hover{border-color:var(--azul-claro);color:var(--azul-claro);}
+  .foto-cuadro.lista{border-style:solid;border-color:var(--verde);font-size:40px;background:#f0fdf4;}
+  .foto-txt{font-size:12px;color:var(--gris);line-height:1.4;}
+
+  /* barcode */
+  .barcode-fila{display:flex;gap:8px;}
+  .barcode-fila input{flex:1;}
+  .btn-scan{
+    background:var(--oscuro);color:var(--blanco);border:none;border-radius:10px;
+    padding:0 14px;font-size:18px;cursor:pointer;flex-shrink:0;
+  }
+  .btn-scan:active{transform:scale(.96);}
+
+  /* margen */
+  .margen-caja{
+    background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;
+    padding:8px 12px;font-size:12.5px;color:#166534;font-weight:700;
+    display:flex;justify-content:space-between;align-items:center;margin-top:8px;
+  }
+  .margen-caja.negativo{background:#fef2f2;border-color:#fecaca;color:var(--rojo);}
+
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .chips .ch{
+    padding:7px 13px;border-radius:999px;border:1.5px solid var(--borde);
+    background:var(--blanco);font-size:13px;font-weight:700;color:var(--gris);
+    cursor:pointer;user-select:none;transition:.12s;
+  }
+  .chips .ch.on{background:var(--azul);border-color:var(--azul);color:var(--blanco);}
+  .preset-fila{display:flex;gap:8px;margin-bottom:10px;}
+  .preset{
+    flex:1;text-align:center;font-size:11.5px;font-weight:800;
+    border:1.5px solid var(--borde);border-radius:10px;padding:7px 4px;
+    cursor:pointer;color:var(--gris);background:#fbfcfe;
+  }
+  .preset.on{border-color:var(--acento);background:#fffbeb;color:#b45309;}
+
+  /* switch */
+  .switch-fila{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .switch-fila .txt b{display:block;font-size:13px;}
+  .switch-fila .txt span{font-size:11.5px;color:#94a3b8;}
+  .sw{
+    width:46px;height:26px;border-radius:999px;background:#cbd5e1;position:relative;
+    cursor:pointer;flex-shrink:0;transition:.15s;
+  }
+  .sw::after{
+    content:"";position:absolute;width:20px;height:20px;border-radius:50%;
+    background:var(--blanco);top:3px;left:3px;transition:.15s;
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+  }
+  .sw.on{background:var(--verde);}
+  .sw.on::after{left:23px;}
+
+  .resumen-var{
+    margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;
+    padding:9px 12px;font-size:12.5px;color:#1d4ed8;font-weight:700;
+  }
+
+  /* botón guardar */
+  .pie-guardar{
+    position:absolute;bottom:0;left:0;right:0;
+    padding:12px 14px 20px;
+    background:linear-gradient(0deg,#f6f7fb 70%,rgba(246,247,251,0));
+  }
+  .btn-guardar{
+    width:100%;padding:15px;border:none;border-radius:14px;
+    background:linear-gradient(135deg,var(--verde),#15803d);
+    color:var(--blanco);font-size:16px;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 20px rgba(22,163,74,.35);
+    font-family:inherit;letter-spacing:.3px;
+  }
+  .btn-guardar:active{transform:scale(.98);}
+
+  /* overlay éxito */
+  .overlay{
+    position:absolute;inset:0;background:rgba(15,23,42,.55);
+    display:none;align-items:flex-end;z-index:40;
+  }
+  .overlay.on{display:flex;}
+  .hoja{
+    background:var(--blanco);border-radius:22px 22px 0 0;width:100%;
+    padding:24px 20px 28px;animation:sube .25s ease;
+    max-height:82%;overflow-y:auto;
+  }
+  @keyframes sube{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .hoja .icono-ok{
+    width:58px;height:58px;border-radius:50%;background:#dcfce7;color:var(--verde);
+    font-size:30px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;
+  }
+  .hoja h3{text-align:center;font-size:18px;margin-bottom:4px;}
+  .hoja .sub{text-align:center;font-size:12.5px;color:var(--gris);margin-bottom:16px;}
+  .hoja table{width:100%;font-size:12.5px;border-collapse:collapse;margin-bottom:16px;}
+  .hoja td{padding:6px 4px;border-bottom:1px solid var(--claro);}
+  .hoja td:first-child{color:var(--gris);white-space:nowrap;padding-right:14px;}
+  .hoja td:last-child{font-weight:700;text-align:right;}
+  .hoja .btns{display:flex;gap:10px;}
+  .hoja button{
+    flex:1;padding:12px;border-radius:12px;font-size:14px;font-weight:800;
+    cursor:pointer;font-family:inherit;border:1.5px solid var(--borde);background:var(--blanco);color:var(--gris);
+  }
+  .hoja button.principal{background:var(--azul);border-color:var(--azul);color:var(--blanco);}
+
+  /* ---------- TABLA MAPEO ODOO ---------- */
+  .tabla-mapeo{
+    width:100%;background:var(--blanco);border-radius:14px;overflow:hidden;
+    box-shadow:0 4px 14px rgba(15,23,42,.06);border-collapse:collapse;font-size:13.5px;
+  }
+  .tabla-mapeo th{
+    background:var(--azul);color:var(--blanco);text-align:left;
+    padding:11px 14px;font-size:12.5px;letter-spacing:.5px;text-transform:uppercase;
+  }
+  .tabla-mapeo td{padding:10px 14px;border-bottom:1px solid var(--claro);vertical-align:top;line-height:1.45;}
+  .tabla-mapeo tr:last-child td{border-bottom:none;}
+  .tabla-mapeo code{
+    background:var(--claro);padding:2px 7px;border-radius:6px;font-size:12px;color:var(--azul);
+    font-family:Consolas,monospace;white-space:nowrap;
+  }
+  .scroll-x{overflow-x:auto;border-radius:14px;}
+
+  @media(max-width:900px){
+    .doc-hero{padding:26px 22px;}
+    .doc-hero h1{font-size:26px;}
+    .telefono{width:100%;max-width:390px;}
+  }
+</style>
+</head>
+<body>
+<div class="contenedor">
+
+  <!-- ============ CABECERA ============ -->
+  <div class="doc-hero">
+    <span class="chip">PROPUESTA DE DISEÑO · PWA YOOHOO</span>
+    <h1>Alta de <span>Productos</span> desde la PWA</h1>
+    <p>Nueva pantalla para dar de alta productos nuevos desde el teléfono, sin entrar al Odoo de escritorio.
+    Incluye el análisis de campos obligatorios de Odoo y el mockup visual e interactivo de la interfase
+    (puedes teclear, seleccionar tallas y probar el botón Guardar aquí mismo).</p>
+  </div>
+
+  <!-- ============ SECCIÓN 1: CAMPOS ============ -->
+  <h2 class="seccion"><span class="num">1</span> ¿Qué campos pide Odoo?</h2>
+  <p class="intro">
+    Odoo solo exige <b>un</b> campo para crear un producto: el nombre. Todo lo demás tiene valores por defecto.
+    Pero para que el producto <b>funcione en tu operación</b> (POS, escáner, inventario, comisiones), estos son
+    los campos que la pantalla trata como obligatorios, recomendados y opcionales:
+  </p>
+  <div class="tarjetas-campos">
+    <div class="tcampo oblig">
+      <h3>🔴 Obligatorios <span class="etq r">BLOQUEAN EL GUARDADO</span></h3>
+      <p class="sub">Sin estos, el producto no sirve en el POS ni en inventario. La pantalla no deja guardar si faltan.</p>
+      <table>
+        <tr><td>Nombre</td><td>Único campo que Odoo exige por sistema. Ej. "Blusa manga larga rayas"</td></tr>
+        <tr><td>Categoría</td><td>Categoría interna de producto (para reportes y presupuesto OTB)</td></tr>
+        <tr><td>Código de barras</td><td>Para cobrar con escáner en el POS. Debe ser único — la PWA lo valida contra Odoo</td></tr>
+        <tr><td>Precio de venta</td><td>Precio al público (IVA incluido, como operas hoy)</td></tr>
+        <tr><td>Costo</td><td>Necesario para margen, valuación de inventario y merma</td></tr>
+      </table>
+    </div>
+    <div class="tcampo recom">
+      <h3>🟡 Recomendados <span class="etq a">CON VALOR POR DEFECTO</span></h3>
+      <p class="sub">La pantalla los pre-llena con lo más común en tu tienda; solo los cambias si aplica.</p>
+      <table>
+        <tr><td>Foto</td><td>Se toma con la cámara del teléfono al momento</td></tr>
+        <tr><td>Tipo</td><td>Pre-fijado en "Almacenable" (controla existencias). No se muestra, va por dentro</td></tr>
+        <tr><td>Impuesto</td><td>Pre-fijado IVA 16% incluido en el precio</td></tr>
+        <tr><td>Disponible en POS</td><td>Encendido por defecto — para eso lo estás dando de alta</td></tr>
+        <tr><td>Categoría POS</td><td>Se propone igual a la categoría interna</td></tr>
+        <tr><td>Referencia interna</td><td>SKU auto-generado (prefijo de categoría + consecutivo), editable</td></tr>
+      </table>
+    </div>
+    <div class="tcampo opc">
+      <h3>🔵 Opcionales <span class="etq b">SOLO SI APLICA</span></h3>
+      <p class="sub">Aparecen colapsados o como interruptores para no estorbar el alta rápida.</p>
+      <table>
+        <tr><td>Tallas / corrida</td><td>Si el producto maneja tallas, se selecciona la corrida y Odoo crea las variantes solas</td></tr>
+        <tr><td>Color</td><td>Segundo atributo de variante (combinado con talla)</td></tr>
+        <tr><td>Proveedor</td><td>Para reabastecimiento y compras</td></tr>
+        <tr><td>Cantidad inicial</td><td>Si ya llegó mercancía, deja el inventario inicial ajustado de una vez</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ SECCIÓN 2: MOCKUP ============ -->
+  <h2 class="seccion"><span class="num">2</span> La interfase — mockup interactivo</h2>
+  <p class="intro">
+    Así se vería la pantalla en la PWA (me.yoohoo.mx). <b>Es funcional como demostración:</b> escribe un nombre,
+    pon precios, prueba el botón 📷 del código de barras, activa tallas y presiona <b>Guardar producto</b>.
+    Si falta un campo obligatorio, lo marca en rojo.
+  </p>
+
+  <div class="zona-mockup">
+    <!-- ===== TELÉFONO ===== -->
+    <div class="telefono">
+      <div class="pantalla">
+        <div class="notch"></div>
+        <div class="app-header">
+          <div class="atras">‹</div>
+          <div>
+            <div class="titulo">Nuevo producto</div>
+            <div class="subtitulo">YOOHOO Store · Alta rápida</div>
+          </div>
+        </div>
+
+        <div class="form-scroll" id="formScroll">
+
+          <!-- FOTO -->
+          <div class="bloque">
+            <h4>📷 Foto del producto</h4>
+            <div class="foto-zona">
+              <div class="foto-cuadro" id="fotoCuadro" onclick="tomarFoto()">＋</div>
+              <div class="foto-txt">Toca el cuadro para <b>tomar la foto con la cámara</b> o elegirla de la galería. Se sube a Odoo como imagen principal.</div>
+            </div>
+          </div>
+
+          <!-- DATOS BÁSICOS -->
+          <div class="bloque">
+            <h4>🏷️ Datos básicos</h4>
+            <div class="campo" id="c-nombre">
+              <label>Nombre del producto <span class="req">*</span></label>
+              <input type="text" id="inNombre" placeholder="Ej. Blusa manga larga rayas" oninput="quitaError(this)">
+              <div class="msg-error">Escribe el nombre del producto</div>
+            </div>
+            <div class="campo" id="c-categoria">
+              <label>Categoría <span class="req">*</span></label>
+              <select id="inCategoria" onchange="quitaError(this);sugiereSku()">
+                <option value="">— Selecciona —</option>
+                <option value="BLU">Blusas</option>
+                <option value="PAN">Pantalones</option>
+                <option value="VES">Vestidos</option>
+                <option value="CAL">Calzado</option>
+                <option value="ACC">Accesorios</option>
+              </select>
+              <div class="ayuda">Se usa también como categoría del POS y para el presupuesto OTB</div>
+              <div class="msg-error">Selecciona la categoría</div>
+            </div>
+          </div>
+
+          <!-- CÓDIGOS -->
+          <div class="bloque">
+            <h4>🔢 Códigos</h4>
+            <div class="campo" id="c-barcode">
+              <label>Código de barras <span class="req">*</span></label>
+              <div class="barcode-fila">
+                <input type="text" id="inBarcode" placeholder="Escanéalo o tecléalo" oninput="quitaError(this)">
+                <button class="btn-scan" onclick="escanear()" title="Escanear con la cámara">📷</button>
+              </div>
+              <div class="ayuda">El botón abre la cámara del teléfono como escáner. La PWA verifica que no exista ya en Odoo.</div>
+              <div class="msg-error">Captura o escanea el código de barras</div>
+            </div>
+            <div class="campo">
+              <label>Referencia interna (SKU) <span class="opt">· auto</span></label>
+              <input type="text" id="inSku" placeholder="Se genera al elegir categoría">
+              <div class="ayuda">Se propone sola (prefijo + consecutivo). Puedes editarla.</div>
+            </div>
+          </div>
+
+          <!-- PRECIOS -->
+          <div class="bloque">
+            <h4>💲 Precios</h4>
+            <div class="fila">
+              <div class="campo" id="c-costo">
+                <label>Costo <span class="req">*</span></label>
+                <input type="number" id="inCosto" placeholder="0.00" oninput="quitaError(this);calculaMargen()">
+                <div class="msg-error">Captura el costo</div>
+              </div>
+              <div class="campo" id="c-precio">
+                <label>Precio de venta <span class="req">*</span></label>
+                <input type="number" id="inPrecio" placeholder="0.00" oninput="quitaError(this);calculaMargen()">
+                <div class="msg-error">Captura el precio</div>
+              </div>
+            </div>
+            <div class="margen-caja" id="cajaMargen" style="display:none">
+              <span>Margen</span><span id="txtMargen">—</span>
+            </div>
+            <div class="campo" style="margin-top:10px">
+              <label>Impuesto</label>
+              <select id="inIva">
+                <option selected>IVA 16% (incluido en el precio)</option>
+                <option>IVA 0%</option>
+                <option>Exento</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- TALLAS / VARIANTES -->
+          <div class="bloque">
+            <h4>📏 Tallas y variantes</h4>
+            <div class="switch-fila" style="margin-bottom:10px">
+              <div class="txt"><b>¿Maneja tallas?</b><span>Odoo creará una variante por talla</span></div>
+              <div class="sw" id="swTallas" onclick="toggleTallas()"></div>
+            </div>
+            <div id="zonaTallas" style="display:none">
+              <div class="preset-fila">
+                <div class="preset" onclick="preset('ropa',this)">👚 ROPA<br>CH·M·G·XG</div>
+                <div class="preset" onclick="preset('calzado',this)">👟 CALZADO<br>22 – 27</div>
+              </div>
+              <div class="chips" id="chipsTallas"></div>
+              <div class="campo" style="margin-top:12px">
+                <label>Colores <span class="opt">· opcional</span></label>
+                <div class="chips" id="chipsColores">
+                  <div class="ch" onclick="toggleChip(this)">Negro</div>
+                  <div class="ch" onclick="toggleChip(this)">Blanco</div>
+                  <div class="ch" onclick="toggleChip(this)">Rojo</div>
+                  <div class="ch" onclick="toggleChip(this)">Azul</div>
+                  <div class="ch" onclick="toggleChip(this)">Rosa</div>
+                </div>
+              </div>
+              <div class="resumen-var" id="resVar" style="display:none"></div>
+            </div>
+          </div>
+
+          <!-- POS E INVENTARIO -->
+          <div class="bloque">
+            <h4>🛒 Punto de venta e inventario</h4>
+            <div class="switch-fila" style="margin-bottom:12px">
+              <div class="txt"><b>Disponible en POS</b><span>Aparece de inmediato en la caja</span></div>
+              <div class="sw on" id="swPos" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="campo">
+              <label>Cantidad inicial <span class="opt">· opcional</span></label>
+              <input type="number" id="inCant" placeholder="0">
+              <div class="ayuda">Si ya llegó la mercancía, deja el inventario ajustado desde el alta (si maneja tallas, después se reparte por talla).</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="pie-guardar">
+          <button class="btn-guardar" onclick="guardar()">✓ &nbsp;Guardar producto</button>
+        </div>
+
+        <!-- OVERLAY DE ÉXITO -->
+        <div class="overlay" id="overlay">
+          <div class="hoja">
+            <div class="icono-ok">✓</div>
+            <h3>Producto listo para crearse</h3>
+            <p class="sub">Esto es lo que la PWA enviará a Odoo:</p>
+            <table id="tablaResumen"></table>
+            <div class="btns">
+              <button onclick="cerrarOverlay()">Seguir editando</button>
+              <button class="principal" onclick="otroProducto()">＋ Dar de alta otro</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== NOTAS ===== -->
+    <div class="notas-laterales">
+      <div class="nota">
+        <span class="titulo-nota">⚡ Pensada para alta rápida en tienda</span>
+        El flujo típico: llega mercancía → foto → escaneas el código → nombre, categoría, costo y precio → guardar.
+        <b>Menos de 60 segundos por producto.</b> Los campos avanzados no estorban: van con valores por defecto
+        o detrás de un interruptor.
+      </div>
+      <div class="nota">
+        <span class="titulo-nota">📷 Escáner con la cámara</span>
+        El botón junto al código de barras abre la cámara del teléfono como lector
+        (igual que el checador usa la cámara para otras cosas). Si el código ya existe en Odoo,
+        la PWA avisa <b>antes</b> de guardar para no duplicar productos.
+      </div>
+      <div class="nota">
+        <span class="titulo-nota">📏 Corridas de talla</span>
+        Con un toque seleccionas la corrida completa (ropa CH–XG o calzado 22–27) y desmarcas
+        las tallas que no llegaron. Odoo genera las variantes automáticamente; el contador azul
+        te dice cuántas se crearán.
+      </div>
+      <div class="nota">
+        <span class="titulo-nota">🔐 Solo para quien tú digas</span>
+        La pantalla aparecería en la PWA únicamente a los perfiles que autorices
+        (por ejemplo Aaron y el encargado de inventario), igual que hoy se controla el acceso
+        por PIN a los demás módulos.
+      </div>
+      <div class="nota">
+        <span class="titulo-nota">🧪 Pruébalo aquí</span>
+        Este mockup es interactivo: intenta guardar sin llenar nada para ver la validación,
+        o llena todo y mira el resumen de lo que se enviaría a Odoo.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SECCIÓN 3: MAPEO ============ -->
+  <h2 class="seccion"><span class="num">3</span> Qué pasa al guardar (mapeo a Odoo)</h2>
+  <p class="intro">
+    Al presionar Guardar, la PWA llama a tu Odoo de producción y crea el producto con estos campos.
+    Es la referencia técnica para cuando construyamos la pantalla real:
+  </p>
+  <div class="scroll-x">
+  <table class="tabla-mapeo">
+    <tr><th>Campo en la pantalla</th><th>Campo en Odoo (product.template)</th><th>Detalle</th></tr>
+    <tr><td>Nombre</td><td><code>name</code></td><td>Único obligatorio por sistema en Odoo</td></tr>
+    <tr><td>Foto</td><td><code>image_1920</code></td><td>Imagen base64 tomada con la cámara</td></tr>
+    <tr><td>Categoría</td><td><code>categ_id</code> + <code>pos_categ_ids</code></td><td>Una sola selección llena ambas (interna y POS)</td></tr>
+    <tr><td>Código de barras</td><td><code>barcode</code></td><td>Validación de unicidad antes de crear</td></tr>
+    <tr><td>Referencia interna</td><td><code>default_code</code></td><td>SKU auto: prefijo de categoría + consecutivo</td></tr>
+    <tr><td>Precio de venta</td><td><code>list_price</code></td><td>Precio al público con IVA incluido</td></tr>
+    <tr><td>Costo</td><td><code>standard_price</code></td><td>Alimenta margen, valuación y control de merma</td></tr>
+    <tr><td>Impuesto</td><td><code>taxes_id</code></td><td>Por defecto IVA 16% incluido en precio</td></tr>
+    <tr><td>(oculto) Tipo</td><td><code>type = 'consu'</code> + <code>is_storable = True</code></td><td>Almacenable: controla existencias (Odoo 17+/19)</td></tr>
+    <tr><td>Disponible en POS</td><td><code>available_in_pos</code></td><td>Encendido por defecto</td></tr>
+    <tr><td>Tallas / Colores</td><td><code>attribute_line_ids</code></td><td>Atributos "Talla" y "Color"; Odoo genera las variantes (product.product)</td></tr>
+    <tr><td>Cantidad inicial</td><td><code>stock.quant</code> (ajuste)</td><td>Ajuste de inventario inicial en la ubicación de la tienda</td></tr>
+  </table>
+  </div>
+
+</div>
+
+<script>
+  // ---------- foto ----------
+  function tomarFoto(){
+    const f=document.getElementById('fotoCuadro');
+    f.classList.add('lista');f.textContent='👚';
+  }
+
+  // ---------- escáner ----------
+  function escanear(){
+    const inp=document.getElementById('inBarcode');
+    inp.value='750'+String(Math.floor(1e9+ (Date.now()%9e9))).slice(0,10);
+    quitaError(inp);
+    inp.style.background='#f0fdf4';
+    setTimeout(()=>inp.style.background='',600);
+  }
+
+  // ---------- SKU ----------
+  function sugiereSku(){
+    const cat=document.getElementById('inCategoria').value;
+    if(cat) document.getElementById('inSku').value=cat+'-'+String(Math.floor(Math.random()*900)+100);
+  }
+
+  // ---------- margen ----------
+  function calculaMargen(){
+    const c=parseFloat(document.getElementById('inCosto').value);
+    const p=parseFloat(document.getElementById('inPrecio').value);
+    const caja=document.getElementById('cajaMargen');
+    if(isNaN(c)||isNaN(p)||p<=0){caja.style.display='none';return;}
+    const m=((p-c)/p*100);
+    caja.style.display='flex';
+    caja.classList.toggle('negativo',m<0);
+    document.getElementById('txtMargen').textContent=
+      (m<0?'⚠️ ':'')+m.toFixed(1)+'%  ($'+(p-c).toFixed(2)+')';
+  }
+
+  // ---------- tallas ----------
+  const CORRIDAS={
+    ropa:['CH','M','G','XG'],
+    calzado:['22','22.5','23','23.5','24','24.5','25','25.5','26','26.5','27']
+  };
+  function toggleTallas(){
+    const sw=document.getElementById('swTallas');
+    sw.classList.toggle('on');
+    document.getElementById('zonaTallas').style.display=sw.classList.contains('on')?'block':'none';
+    cuentaVariantes();
+  }
+  function preset(tipo,el){
+    document.querySelectorAll('.preset').forEach(p=>p.classList.remove('on'));
+    el.classList.add('on');
+    const cont=document.getElementById('chipsTallas');
+    cont.innerHTML='';
+    CORRIDAS[tipo].forEach(t=>{
+      const d=document.createElement('div');
+      d.className='ch on';d.textContent=t;
+      d.onclick=()=>{d.classList.toggle('on');cuentaVariantes();};
+      cont.appendChild(d);
+    });
+    cuentaVariantes();
+  }
+  function toggleChip(el){el.classList.toggle('on');cuentaVariantes();}
+  function cuentaVariantes(){
+    const res=document.getElementById('resVar');
+    if(!document.getElementById('swTallas').classList.contains('on')){res.style.display='none';return;}
+    const t=document.querySelectorAll('#chipsTallas .ch.on').length;
+    const c=document.querySelectorAll('#chipsColores .ch.on').length;
+    const total=t*(c||1);
+    if(t===0){res.style.display='none';return;}
+    res.style.display='block';
+    res.textContent='🧩 Se crearán '+total+' variante'+(total>1?'s':'')+' ('+t+' talla'+(t>1?'s':'')+(c?' × '+c+' color'+(c>1?'es':''):'')+')';
+  }
+
+  // ---------- validación / guardar ----------
+  function quitaError(inp){inp.closest('.campo').classList.remove('error');}
+  function guardar(){
+    const oblig=[
+      ['c-nombre','inNombre'],['c-categoria','inCategoria'],
+      ['c-barcode','inBarcode'],['c-costo','inCosto'],['c-precio','inPrecio']
+    ];
+    let primero=null;
+    oblig.forEach(([campo,inp])=>{
+      const ok=document.getElementById(inp).value.trim()!=='';
+      const c=document.getElementById(campo);
+      c.classList.toggle('error',!ok);
+      if(!ok&&!primero)primero=c;
+    });
+    if(primero){primero.scrollIntoView({behavior:'smooth',block:'center'});return;}
+
+    const v=id=>document.getElementById(id).value;
+    const tallas=[...document.querySelectorAll('#chipsTallas .ch.on')].map(e=>e.textContent);
+    const colores=[...document.querySelectorAll('#chipsColores .ch.on')].map(e=>e.textContent);
+    const conTallas=document.getElementById('swTallas').classList.contains('on')&&tallas.length;
+    const nVar=conTallas?tallas.length*(colores.length||1):1;
+    const filas=[
+      ['Producto',v('inNombre')],
+      ['Categoría',document.getElementById('inCategoria').selectedOptions[0].text],
+      ['Código de barras',v('inBarcode')],
+      ['SKU',v('inSku')||'—'],
+      ['Costo / Precio','$'+(+v('inCosto')).toFixed(2)+' / $'+(+v('inPrecio')).toFixed(2)],
+      ['Impuesto',v('inIva')],
+      ['POS',document.getElementById('swPos').classList.contains('on')?'✅ Disponible':'—'],
+      ['Variantes',conTallas?nVar+' ('+tallas.join(', ')+(colores.length?' × '+colores.join(', '):'')+')':'Sin tallas'],
+      ['Inventario inicial',v('inCant')?v('inCant')+' pzas':'—']
+    ];
+    document.getElementById('tablaResumen').innerHTML=
+      filas.map(f=>'<tr><td>'+f[0]+'</td><td>'+f[1]+'</td></tr>').join('');
+    document.getElementById('overlay').classList.add('on');
+  }
+  function cerrarOverlay(){document.getElementById('overlay').classList.remove('on');}
+  function otroProducto(){
+    cerrarOverlay();
+    ['inNombre','inBarcode','inSku','inCosto','inPrecio','inCant'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('inCategoria').value='';
+    document.getElementById('cajaMargen').style.display='none';
+    const f=document.getElementById('fotoCuadro');f.classList.remove('lista');f.textContent='＋';
+    document.getElementById('formScroll').scrollTo({top:0,behavior:'smooth'});
+  }
+</script>
+</body>
+</html>
