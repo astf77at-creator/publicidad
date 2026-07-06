@@ -191,6 +191,7 @@ async def create_job(
     trasero: UploadFile = File(...),
     variant_ids: str = Form(default=""),
     codigo: str = Form(default=""),
+    titulo: str = Form(default=""),
     emp: dict = Depends(require_pin),
 ):
     """Encola un trabajo y responde de inmediato con su job_id."""
@@ -216,6 +217,7 @@ async def create_job(
             "etapa": "En cola…",
             "reference_id": reference_id,
             "producto": descripcion,
+            "titulo": titulo or descripcion,
             "empleado": (emp.get("name") if isinstance(emp, dict) else "") or "",
             "imagenes": 0,
             "detail": None,
@@ -225,6 +227,21 @@ async def create_job(
     _executor.submit(_process_job, job_id, reference_id, tipo, descripcion,
                      refs, vids, codigo)
     return {"job_id": job_id, "estado": "en_cola"}
+
+
+@app.get("/api/jobs")
+def list_jobs(_emp: dict = Depends(require_pin)):
+    """Lista TODOS los trabajos (de cualquier operador): activos primero.
+
+    Permite ver qué imágenes siguen pendientes de crear, y sobrevive a
+    recargas de la pantalla (el estado vive en el backend).
+    """
+    _prune()
+    with _jobs_lock:
+        items = list(_jobs.values())
+    orden = {"procesando": 0, "en_cola": 1, "error": 2, "listo": 3}
+    items.sort(key=lambda j: (orden.get(j["estado"], 9), -j.get("creado", 0)))
+    return items
 
 
 @app.get("/api/jobs/{job_id}")

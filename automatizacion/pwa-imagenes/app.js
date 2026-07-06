@@ -81,6 +81,7 @@ async function init() {
     fill($("tipo"), tipos, { value: "id", label: "label", placeholder: "Elige tipo…" });
     $("form").hidden = false;
     $("btn-faltantes").hidden = false;
+    startColaTimer();   // muestra los trabajos pendientes ya existentes (compartidos)
   } catch (err) {
     if (/401/.test(err.message) || /PIN/i.test(err.message)) {
       showGate("PIN inválido o sesión no reconocida. Vuelve a entrar desde el lanzador.");
@@ -243,73 +244,55 @@ $("referencia").addEventListener("input", () => {
 //  procesa los trabajos en segundo plano (2 a la vez). Aquí mostramos una
 //  tarjeta por trabajo con barra de progreso y consultamos su estado.
 // ======================================================================
-const MAX_COLA = 20;          // máximo de trabajos en proceso/espera a la vez
-const cola = [];              // {job_id, estado, el, relleno, estadoEl}
-let poller = null;
+const MAX_COLA = 20;          // máximo de trabajos activos permitidos al añadir
+let ultimoActivos = 0;        // nº de activos según la última consulta
+let colaTimer = null;
 
-function jobsActivos() {
-  return cola.filter((j) => j.estado === "en_cola" || j.estado === "procesando");
+function estadoTxt(j) {
+  if (j.estado === "en_cola") return "En cola…";
+  if (j.estado === "listo") return `✅ Listo (${j.imagenes || 0})`;
+  if (j.estado === "error") return "❌ " + (j.detail || "Error");
+  if (/subiendo/i.test(j.etapa || "")) return "Subiendo a Odoo…";
+  return `Generando ${j.done || 0}/${j.total || 0}`;
+}
+function barraPct(j) {
+  if (j.estado === "listo") return 100;
+  if (j.estado === "en_cola") return 0;
+  const t = j.total || 0, d = j.done || 0;
+  return t ? Math.round((d / t) * 100) : 0;
+}
+function esIndeterminada(j) {
+  return j.estado === "en_cola" ||
+    (j.estado === "procesando" && /subiendo/i.test(j.etapa || ""));
 }
 
-function renderColaHead() {
-  const act = jobsActivos().length;
+// Consulta al backend la lista COMPLETA de trabajos y pinta el panel. Así se
+// ven todos los pendientes (de cualquier operador) y sobrevive a recargas.
+async function refreshCola() {
+  let jobs;
+  try { jobs = await api("/jobs"); } catch (e) { return; }
+  const panel = $("cola");
+  if (!jobs.length) { panel.hidden = true; ultimoActivos = 0; return; }
+  panel.hidden = false;
+  ultimoActivos = jobs.filter(
+    (j) => j.estado === "en_cola" || j.estado === "procesando").length;
   $("cola-head").textContent =
-    `Cola de generación · ${act} en proceso/espera · ${cola.length} en total`;
+    `Cola de generación · ${ultimoActivos} pendientes · ${jobs.length} en total`;
+  $("cola-lista").innerHTML = jobs.map((j) => {
+    const cls = j.estado === "listo" ? " ok" : j.estado === "error" ? " error" : "";
+    const rell = "relleno" + (esIndeterminada(j) ? " indeterminada" : "");
+    return `<div class="job${cls}"><div class="job-top">` +
+      `<span class="job-label">${esc(j.titulo || j.producto || "")}</span>` +
+      `<span class="job-estado">${esc(estadoTxt(j))}</span></div>` +
+      `<div class="barra"><div class="${rell}" style="width:${barraPct(j)}%"></div></div>` +
+      `</div>`;
+  }).join("");
 }
 
-function addJobCard(job_id, label) {
-  $("cola").hidden = false;
-  const card = document.createElement("div");
-  card.className = "job";
-  card.dataset.id = job_id;
-  card.innerHTML =
-    `<div class="job-top"><span class="job-label">${esc(label)}</span>` +
-    `<span class="job-estado">En cola…</span></div>` +
-    `<div class="barra"><div class="relleno indeterminada"></div></div>`;
-  $("cola-lista").prepend(card);                       // el más nuevo arriba
-  cola.push({
-    job_id, estado: "en_cola", el: card,
-    relleno: card.querySelector(".relleno"),
-    estadoEl: card.querySelector(".job-estado"),
-  });
-  renderColaHead();
-}
-
-function startPoller() {
-  if (poller) return;
-  poller = setInterval(async () => {
-    const act = jobsActivos();
-    if (!act.length) { clearInterval(poller); poller = null; renderColaHead(); return; }
-    for (const j of act) {
-      let job;
-      try { job = await api(`/jobs/${j.job_id}`); } catch (e) { continue; }
-      j.estado = job.estado;
-      if (job.estado === "en_cola") {
-        j.relleno.classList.add("indeterminada");
-        j.estadoEl.textContent = "En cola…";
-      } else if (job.estado === "procesando") {
-        if (/subiendo/i.test(job.etapa || "")) {
-          j.relleno.classList.add("indeterminada");
-          j.estadoEl.textContent = "Subiendo a Odoo…";
-        } else {
-          j.relleno.classList.remove("indeterminada");
-          const total = job.total || 0, done = job.done || 0;
-          j.relleno.style.width = (total ? Math.round((done / total) * 100) : 0) + "%";
-          j.estadoEl.textContent = `Generando ${done}/${total}`;
-        }
-      } else if (job.estado === "listo") {
-        j.relleno.classList.remove("indeterminada");
-        j.relleno.style.width = "100%";
-        j.el.classList.add("ok");
-        j.estadoEl.textContent = `✅ Listo (${job.imagenes || 0})`;
-      } else if (job.estado === "error") {
-        j.relleno.classList.remove("indeterminada");
-        j.el.classList.add("error");
-        j.estadoEl.textContent = "❌ " + (job.detail || "Error");
-      }
-    }
-    renderColaHead();
-  }, 2000);
+function startColaTimer() {
+  refreshCola();
+  if (colaTimer) return;
+  colaTimer = setInterval(refreshCola, 2500);
 }
 
 function resetForm() {
@@ -342,8 +325,8 @@ $("form").addEventListener("submit", async (e) => {
     setRefEstado("Faltan las dos fotos (frente y trasero).", "error");
     return;
   }
-  if (jobsActivos().length >= MAX_COLA) {
-    setRefEstado(`La cola está llena (${MAX_COLA}). Espera a que terminen algunos.`, "error");
+  if (ultimoActivos >= MAX_COLA) {
+    setRefEstado(`La cola está llena (${MAX_COLA} pendientes). Espera a que terminen algunos.`, "error");
     return;
   }
 
@@ -357,6 +340,7 @@ $("form").addEventListener("submit", async (e) => {
   fd.append("frente", $("frente").files[0]);
   fd.append("trasero", $("trasero").files[0]);
   fd.append("codigo", verificado.default_code || "");   // se estampa discreto en la imagen
+  fd.append("titulo", label);                           // etiqueta para la lista de la cola
   if (tieneColor && $("color").value) fd.append("variant_ids", $("color").value);
 
   btn.disabled = true;
@@ -366,9 +350,8 @@ $("form").addEventListener("submit", async (e) => {
       const d = await res.json().catch(() => ({}));
       throw new Error(d.detail || `Error ${res.status}`);
     }
-    const { job_id } = await res.json();
-    addJobCard(job_id, label);
-    startPoller();
+    await res.json();
+    startColaTimer();      // refresca la lista de la cola desde el backend
     resetForm();
     const estado = $("estado");
     estado.hidden = false;
