@@ -214,28 +214,19 @@
     padding:2px 8px;letter-spacing:.3px;
   }
 
-  /* grupos de corrida (segmentos) */
-  .seg-scroll{
-    display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;
-    scrollbar-width:none;
+  /* hoja de tallas: grupos de corrida */
+  .lista-tallas{max-height:330px;overflow-y:auto;margin-bottom:14px;}
+  .grupo-talla-h{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:11px;font-weight:800;color:var(--azul);text-transform:uppercase;
+    letter-spacing:.5px;margin:12px 0 7px;
   }
-  .seg-scroll::-webkit-scrollbar{display:none;}
-  .seg{
-    flex-shrink:0;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:800;
-    border:1.5px solid var(--borde);background:#fbfcfe;color:var(--gris);cursor:pointer;
-    white-space:nowrap;
+  .grupo-talla-h:first-child{margin-top:0;}
+  .grupo-talla-h button{
+    font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;
+    border:1.5px solid var(--borde);background:#fbfcfe;color:var(--azul);
+    border-radius:999px;padding:3px 10px;
   }
-  .seg.on{background:var(--acento);border-color:var(--acento);color:var(--blanco);}
-  .seg .cnt{
-    background:rgba(0,0,0,.12);border-radius:999px;padding:0 6px;font-size:10.5px;margin-left:4px;
-  }
-  .acciones-corrida{display:flex;gap:8px;margin-bottom:9px;}
-  .acciones-corrida button{
-    flex:1;padding:8px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;
-    font-family:inherit;border:1.5px solid var(--borde);background:var(--blanco);color:var(--azul);
-  }
-  .sel-line{font-size:11.5px;color:var(--gris);margin-top:8px;line-height:1.5;}
-  .sel-line b{color:var(--azul);}
 
   /* swatches de color */
   .sw-c{
@@ -400,7 +391,7 @@
       <h3>🔵 Opcionales <span class="etq b">SOLO SI APLICA</span></h3>
       <p class="sub">Aparecen colapsados o como interruptores para no estorbar el alta rápida.</p>
       <table>
-        <tr><td>Tallas / corrida</td><td>Las 49 tallas reales de Odoo agrupadas en 5 corridas (Junior, Letras, Pares, Pants, Unitalla); Odoo crea las variantes solas</td></tr>
+        <tr><td>Tallas / corrida</td><td>Las 49 tallas reales: 10 más vendidas directo + buscador por grupos de corrida con "toda la corrida"; Odoo crea las variantes solas</td></tr>
         <tr><td>Color</td><td>Los 117 colores reales: 10 frecuentes directo + buscador para el resto</td></tr>
         <tr><td>Proveedor</td><td>Para reabastecimiento y compras</td></tr>
         <tr><td>Cantidad inicial</td><td>Si ya llegó mercancía, deja el inventario inicial ajustado de una vez</td></tr>
@@ -555,14 +546,11 @@
               <div class="sw" id="swTallas" onclick="toggleTallas()"></div>
             </div>
             <div id="zonaTallas" style="display:none">
-              <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px">Tallas <span class="opt">· 49 en catálogo, por grupo de corrida</span></label>
-              <div class="seg-scroll" id="segGrupos"></div>
-              <div class="acciones-corrida">
-                <button onclick="corridaCompleta()">⚡ Toda la corrida</button>
-                <button onclick="limpiaGrupo()">✕ Limpiar grupo</button>
-              </div>
-              <div class="chips" id="chipsTallas"></div>
-              <div class="sel-line" id="tallasSelTxt"></div>
+              <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:4px">Tallas <span class="opt">· 49 en catálogo</span></label>
+              <div class="ayuda" style="margin:0 0 7px">Las más vendidas en tu tienda, directo. El resto en el buscador:</div>
+              <div class="chips" id="tallaFrec"></div>
+              <button class="btn-todos" onclick="abreTallas()">📏 Buscar en todas las tallas (49)…</button>
+              <div class="chips" id="tallasSelZona" style="margin-top:9px"></div>
 
               <div class="campo" style="margin-top:14px">
                 <label>Colores <span class="opt">· opcional · 117 en catálogo</span></label>
@@ -593,6 +581,18 @@
 
         <div class="pie-guardar">
           <button class="btn-guardar" onclick="guardar()">✓ &nbsp;Guardar producto</button>
+        </div>
+
+        <!-- HOJA SELECTOR DE TALLAS -->
+        <div class="overlay" id="ovTallas">
+          <div class="hoja hoja-colores">
+            <h3 style="margin-bottom:10px">📏 Tallas del catálogo</h3>
+            <input type="text" id="buscaTalla" placeholder="Buscar talla… (ej. 5, XL, unitalla)" oninput="pintaListaTallas()">
+            <div class="lista-tallas" id="listaTallas"></div>
+            <div class="btns">
+              <button class="principal" id="btnTallasListo" onclick="cierraTallas()">Listo</button>
+            </div>
+          </div>
         </div>
 
         <!-- HOJA SELECTOR DE COLORES -->
@@ -633,10 +633,11 @@
         o detrás de un interruptor.
       </div>
       <div class="nota">
-        <span class="titulo-nota">📏 49 tallas, agrupadas por corrida</span>
-        Las tallas son <b>las reales de tu Odoo</b>, organizadas en 5 grupos: <b>Junior impares</b> (1–19, la más vendida),
-        <b>Letras</b> (XS–XXL, combinadas y extendidas 1X–4X), <b>Pares</b> (0–24), <b>Pants</b> (28–40) y <b>Unitalla</b>.
-        "⚡ Toda la corrida" marca el grupo completo y desmarcas lo que no llegó. El contador azul dice cuántas variantes se crearán.
+        <span class="titulo-nota">📏 49 tallas, igual que los colores</span>
+        Las <b>10 tallas más vendidas</b> de tu tienda (5, S, M, 9, 7, L, 11, 1, 13, 3) aparecen directo como botones.
+        El resto está en el buscador, <b>organizado en 5 grupos de corrida</b>: Junior impares (1–19), Letras (XS–XXL, 1X–4X),
+        Pares (0–24), Pants (28–40) y Unitalla — cada grupo con su botón "⚡ Toda la corrida" para marcar todo y
+        desmarcar lo que no llegó. El contador azul dice cuántas variantes se crearán.
       </div>
       <div class="nota">
         <span class="titulo-nota">🎨 117 colores, sin scroll infinito</span>
@@ -726,7 +727,7 @@
   }
 
   // ---------- datos reales de Odoo (yoohoo2, 2026-07-06) ----------
-  const ODOO={"colores":[{"n":"Almendra","h":"#EFDECD"},{"n":"Amarillo Mantequilla","h":"#FFF4A3"},{"n":"Avena","h":"#E8DCC4"},{"n":"Azul Claro","h":"#ADD8E6"},{"n":"Azul Claro/Negro","h":"#ADD8E6"},{"n":"Azul Hielo","h":"#D6F1FF"},{"n":"Azul Marino/Marfil","h":"#1A2F4A"},{"n":"Azul Piedra","h":"#5D6D7E"},{"n":"Azul/Blanco","h":"#0000FF"},{"n":"Beige/Azul Marino","h":"#F5F5DC"},{"n":"Blanco/Azul","h":"#FFFFFF"},{"n":"Blanco/Rosa","h":"#FFFFFF"},{"n":"Blanco/Taupe","h":"#FFFFFF"},{"n":"Caoba","h":"#7B3F2A"},{"n":"Caqui Claro","h":"#D5C9A5"},{"n":"Chocolate","h":"#3C2415"},{"n":"Crema/Negro","h":"#F5F5DC"},{"n":"Kiwi","h":"#8EE53F"},{"n":"Lima","h":"#BFFF00"},{"n":"Menta Apagada","h":"#A8C4B0"},{"n":"Moka","h":"#8B6F47"},{"n":"Naranja Claro","h":"#FFB347"},{"n":"Natural","h":"#E8DCC4"},{"n":"Natural/Negro","h":"#E8DCC4"},{"n":"Rosa Lila","h":"#D8A5C4"},{"n":"Rosa Piedra","h":"#C9A6A6"},{"n":"Rubor","h":"#FFB6B0"},{"n":"Taupe","h":"#967B68"},{"n":"Tiza","h":"#F5F2E7"},{"n":"Verde Azulado","h":"#008B8B"},{"n":"Verde Olivo/Marfil","h":"#556B2F"},{"n":"Wine Red","h":"#751a1a"},{"n":"Light blue","h":"#60a9e1"},{"n":"Dark pink","h":"#e15699"},{"n":"Dark Blue","h":"#1446db"},{"n":"Blue","h":"#3498DB"},{"n":"Red","h":"#eb1e1e"},{"n":"Black","h":"#272020"},{"n":"White","h":"#fdf7f7"},{"n":"Purple","h":"#eda6e7"},{"n":"Pink","h":"#f287d9"},{"n":"Yellow","h":"#e1c823"},{"n":"Rojo","h":"#FF0000"},{"n":"Verde","h":"#008000"},{"n":"Azul","h":"#0000FF"},{"n":"Stone","h":"#5D91BF"},{"n":"Bleanch","h":"#B3E5FC"},{"n":"Gris","h":"#808080"},{"n":"Negro","h":"#000000"},{"n":"Crudo","h":"#F5F5DC"},{"n":"Blanco","h":"#FFFFFF"},{"n":"Café","h":"#8B4513"},{"n":"Beige","h":"#F5F5DC"},{"n":"Arena","h":"#D2B48C"},{"n":"Naranja","h":"#FFA500"},{"n":"Amarillo","h":"#FFD700"},{"n":"Rosa","h":"#FFB6C1"},{"n":"Lila","h":"#C8A2C8"},{"n":"Morado","h":"#800080"},{"n":"Khaki","h":"#C3B091"},{"n":"Malva","h":"#E0B0FF"},{"n":"Azul Cielo","h":"#87CEEB"},{"n":"Azul Marino","h":"#001F5B"},{"n":"Camel","h":"#C19A6B"},{"n":"Negro Piel","h":"#1C1008"},{"n":"Stone Wash Dark","h":"#3B4F6B"},{"n":"Stone Wash Medio","h":"#6B82A0"},{"n":"Verde Brillante","h":"#39FF14"},{"n":"Verde Olivo","h":"#6B8E23"},{"n":"En Crudo","h":"#EDE8D0"},{"n":"Palo de Rosa","h":"#E8B4B8"},{"n":"Beanch","h":"#F5E6C8"},{"n":"Coral","h":"#FF7F7F"},{"n":"Terracota","h":"#C06040"},{"n":"Menta","h":"#98FF98"},{"n":"Turquesa","h":"#40E0D0"},{"n":"Dorado","h":"#FFD700"},{"n":"Plata","h":"#C0C0C0"},{"n":"Vino","h":"#722F37"},{"n":"Borgoña","h":"#800020"},{"n":"Durazno","h":"#FFCBA4"},{"n":"Aqua","h":"#00FFFF"},{"n":"Multicolor","h":"#FF69B4"},{"n":"Estampado","h":"#9E9E9E"},{"n":"Lavanda","h":"#E6E6FA"},{"n":"Salmon","h":"#FA8072"},{"n":"Hueso","h":"#F9F6EE"},{"n":"Indigo","h":"#4B0082"},{"n":"Mostaza","h":"#FFDB58"},{"n":"Caqui","h":"#BDB76B"},{"n":"Celeste","h":"#B2FFFF"},{"n":"Marino","h":"#003153"},{"n":"Mezclilla","h":"#4A6D8C"},{"n":"Stone Claro","h":""},{"n":"Stone Medio","h":""},{"n":"Stone Obscuro","h":""},{"n":"Mamey","h":""},{"n":"Metalico","h":""},{"n":"Guinda","h":""},{"n":"Bordo","h":""},{"n":"camel","h":""},{"n":"Fiusha","h":"#bb298e"},{"n":"Gris Claro","h":""},{"n":"Gris Obscuro","h":""},{"n":"Verde Militar","h":""},{"n":"Azul Rey","h":""},{"n":"Rojo vino","h":""},{"n":"khaki","h":""},{"n":"Stone Wash Claro","h":""},{"n":"Marfil","h":""},{"n":"Verde menta","h":""},{"n":"Crema","h":""},{"n":"Beigue Piedra","h":""},{"n":"Toffe (Caramelo Café)","h":""},{"n":"Concrete Stone Medio","h":""},{"n":"Único","h":""},{"n":"Champague","h":"#f4eacd"}],"tallas":["S","S/M","XS","M/L","XL","1","XXL","3","5","7","9","11","13","15","17","19","4","6","8","10","12","14","16","M","L","28","30","32","34","36","38","40","XS/S","L/XL","Única","1X","2X","3X","4X","24 XL","Unitalla","0","CERO","UNITALLA","0","18","20","22","24"],"color_freq":[["Stone Obscuro",476],["Stone Medio",360],["Stone Claro",287],["Negro",276],["Blanco",145],["Verde",115],["Stone",92],["Beige",89],["Rosa",82],["Café",82],["Azul",79],["Gris",66],["Black",52],["khaki",50],["Rojo",50]]};
+  const ODOO={"colores":[{"n":"Almendra","h":"#EFDECD"},{"n":"Amarillo Mantequilla","h":"#FFF4A3"},{"n":"Avena","h":"#E8DCC4"},{"n":"Azul Claro","h":"#ADD8E6"},{"n":"Azul Claro/Negro","h":"#ADD8E6"},{"n":"Azul Hielo","h":"#D6F1FF"},{"n":"Azul Marino/Marfil","h":"#1A2F4A"},{"n":"Azul Piedra","h":"#5D6D7E"},{"n":"Azul/Blanco","h":"#0000FF"},{"n":"Beige/Azul Marino","h":"#F5F5DC"},{"n":"Blanco/Azul","h":"#FFFFFF"},{"n":"Blanco/Rosa","h":"#FFFFFF"},{"n":"Blanco/Taupe","h":"#FFFFFF"},{"n":"Caoba","h":"#7B3F2A"},{"n":"Caqui Claro","h":"#D5C9A5"},{"n":"Chocolate","h":"#3C2415"},{"n":"Crema/Negro","h":"#F5F5DC"},{"n":"Kiwi","h":"#8EE53F"},{"n":"Lima","h":"#BFFF00"},{"n":"Menta Apagada","h":"#A8C4B0"},{"n":"Moka","h":"#8B6F47"},{"n":"Naranja Claro","h":"#FFB347"},{"n":"Natural","h":"#E8DCC4"},{"n":"Natural/Negro","h":"#E8DCC4"},{"n":"Rosa Lila","h":"#D8A5C4"},{"n":"Rosa Piedra","h":"#C9A6A6"},{"n":"Rubor","h":"#FFB6B0"},{"n":"Taupe","h":"#967B68"},{"n":"Tiza","h":"#F5F2E7"},{"n":"Verde Azulado","h":"#008B8B"},{"n":"Verde Olivo/Marfil","h":"#556B2F"},{"n":"Wine Red","h":"#751a1a"},{"n":"Light blue","h":"#60a9e1"},{"n":"Dark pink","h":"#e15699"},{"n":"Dark Blue","h":"#1446db"},{"n":"Blue","h":"#3498DB"},{"n":"Red","h":"#eb1e1e"},{"n":"Black","h":"#272020"},{"n":"White","h":"#fdf7f7"},{"n":"Purple","h":"#eda6e7"},{"n":"Pink","h":"#f287d9"},{"n":"Yellow","h":"#e1c823"},{"n":"Rojo","h":"#FF0000"},{"n":"Verde","h":"#008000"},{"n":"Azul","h":"#0000FF"},{"n":"Stone","h":"#5D91BF"},{"n":"Bleanch","h":"#B3E5FC"},{"n":"Gris","h":"#808080"},{"n":"Negro","h":"#000000"},{"n":"Crudo","h":"#F5F5DC"},{"n":"Blanco","h":"#FFFFFF"},{"n":"Café","h":"#8B4513"},{"n":"Beige","h":"#F5F5DC"},{"n":"Arena","h":"#D2B48C"},{"n":"Naranja","h":"#FFA500"},{"n":"Amarillo","h":"#FFD700"},{"n":"Rosa","h":"#FFB6C1"},{"n":"Lila","h":"#C8A2C8"},{"n":"Morado","h":"#800080"},{"n":"Khaki","h":"#C3B091"},{"n":"Malva","h":"#E0B0FF"},{"n":"Azul Cielo","h":"#87CEEB"},{"n":"Azul Marino","h":"#001F5B"},{"n":"Camel","h":"#C19A6B"},{"n":"Negro Piel","h":"#1C1008"},{"n":"Stone Wash Dark","h":"#3B4F6B"},{"n":"Stone Wash Medio","h":"#6B82A0"},{"n":"Verde Brillante","h":"#39FF14"},{"n":"Verde Olivo","h":"#6B8E23"},{"n":"En Crudo","h":"#EDE8D0"},{"n":"Palo de Rosa","h":"#E8B4B8"},{"n":"Beanch","h":"#F5E6C8"},{"n":"Coral","h":"#FF7F7F"},{"n":"Terracota","h":"#C06040"},{"n":"Menta","h":"#98FF98"},{"n":"Turquesa","h":"#40E0D0"},{"n":"Dorado","h":"#FFD700"},{"n":"Plata","h":"#C0C0C0"},{"n":"Vino","h":"#722F37"},{"n":"Borgoña","h":"#800020"},{"n":"Durazno","h":"#FFCBA4"},{"n":"Aqua","h":"#00FFFF"},{"n":"Multicolor","h":"#FF69B4"},{"n":"Estampado","h":"#9E9E9E"},{"n":"Lavanda","h":"#E6E6FA"},{"n":"Salmon","h":"#FA8072"},{"n":"Hueso","h":"#F9F6EE"},{"n":"Indigo","h":"#4B0082"},{"n":"Mostaza","h":"#FFDB58"},{"n":"Caqui","h":"#BDB76B"},{"n":"Celeste","h":"#B2FFFF"},{"n":"Marino","h":"#003153"},{"n":"Mezclilla","h":"#4A6D8C"},{"n":"Stone Claro","h":""},{"n":"Stone Medio","h":""},{"n":"Stone Obscuro","h":""},{"n":"Mamey","h":""},{"n":"Metalico","h":""},{"n":"Guinda","h":""},{"n":"Bordo","h":""},{"n":"camel","h":""},{"n":"Fiusha","h":"#bb298e"},{"n":"Gris Claro","h":""},{"n":"Gris Obscuro","h":""},{"n":"Verde Militar","h":""},{"n":"Azul Rey","h":""},{"n":"Rojo vino","h":""},{"n":"khaki","h":""},{"n":"Stone Wash Claro","h":""},{"n":"Marfil","h":""},{"n":"Verde menta","h":""},{"n":"Crema","h":""},{"n":"Beigue Piedra","h":""},{"n":"Toffe (Caramelo Café)","h":""},{"n":"Concrete Stone Medio","h":""},{"n":"Único","h":""},{"n":"Champague","h":"#f4eacd"}],"tallas":["S","S/M","XS","M/L","XL","1","XXL","3","5","7","9","11","13","15","17","19","4","6","8","10","12","14","16","M","L","28","30","32","34","36","38","40","XS/S","L/XL","Única","1X","2X","3X","4X","24 XL","Unitalla","0","CERO","UNITALLA","0","18","20","22","24"],"color_freq":[["Stone Obscuro",476],["Stone Medio",360],["Stone Claro",287],["Negro",276],["Blanco",145],["Verde",115],["Stone",92],["Beige",89],["Rosa",82],["Café",82],["Azul",79],["Gris",66],["Black",52],["khaki",50],["Rojo",50]],"talla_freq":[["5",741],["S",708],["M",566],["9",541],["7",505],["L",448],["11",441],["1",437],["13",417],["3",306],["15",306],["XL",99],["XS",79],["32",34],["28",31],["16",26],["10",22],["14",22],["Única",22],["36",21]]};
 
   // colores del catálogo sin html_color en Odoo → tono aproximado para el swatch
   const HEX_FIX={'Stone Claro':'#A8BDD0','Stone Medio':'#6B82A0','Stone Obscuro':'#3B4F6B',
@@ -760,51 +761,75 @@
   };
   Object.values(GRUPOS).forEach(arr=>arr.sort(numOrd));
 
-  let grupoActivo='Junior impares';
   const tallasSel=new Set(), coloresSel=new Set();
+  const TALLA_FREC=ODOO.talla_freq.slice(0,10).map(([n])=>n);
 
-  function pintaGrupos(){
-    const cont=document.getElementById('segGrupos');
-    cont.innerHTML='';
-    ORDEN_G.filter(g=>GRUPOS[g]).forEach(g=>{
-      const b=document.createElement('div');
-      b.className='seg'+(g===grupoActivo?' on':'');
-      const nSel=GRUPOS[g].filter(t=>tallasSel.has(t)).length;
-      b.innerHTML=g+(nSel?'<span class="cnt">'+nSel+'</span>':'');
-      b.onclick=()=>{grupoActivo=g;pintaGrupos();pintaTallas();};
-      cont.appendChild(b);
-    });
+  function chipTalla(n,onclick){
+    const d=document.createElement('div');
+    d.className='ch'+(tallasSel.has(n)?' on':'');d.textContent=n;
+    d.onclick=onclick;
+    return d;
   }
-  function pintaTallas(){
-    const cont=document.getElementById('chipsTallas');
+  function toggleTalla(n){
+    tallasSel.has(n)?tallasSel.delete(n):tallasSel.add(n);
+    pintaTallaFrec();pintaTallasSel();cuentaVariantes();
+    if(document.getElementById('ovTallas').classList.contains('on'))pintaListaTallas();
+  }
+  function pintaTallaFrec(){
+    const cont=document.getElementById('tallaFrec');
     cont.innerHTML='';
-    (GRUPOS[grupoActivo]||[]).forEach(t=>{
-      const d=document.createElement('div');
-      d.className='ch'+(tallasSel.has(t)?' on':'');d.textContent=t;
-      d.onclick=()=>{tallasSel.has(t)?tallasSel.delete(t):tallasSel.add(t);pintaGrupos();pintaTallas();cuentaVariantes();};
+    TALLA_FREC.forEach(n=>cont.appendChild(chipTalla(n,()=>toggleTalla(n))));
+  }
+  function pintaTallasSel(){
+    const cont=document.getElementById('tallasSelZona');
+    cont.innerHTML='';
+    [...tallasSel].filter(n=>!TALLA_FREC.includes(n)).sort(numOrd).forEach(n=>{
+      const d=chipTalla(n,()=>toggleTalla(n));
+      d.innerHTML+=' <span class="x">✕</span>';
       cont.appendChild(d);
     });
-    pintaSelLine();
   }
-  function pintaSelLine(){
-    const el=document.getElementById('tallasSelTxt');
-    el.innerHTML=tallasSel.size
-      ?'<b>'+tallasSel.size+' talla'+(tallasSel.size>1?'s':'')+':</b> '+[...tallasSel].sort(numOrd).join(', ')
-      :'Toca las tallas que llegaron, o usa "Toda la corrida"';
+  function abreTallas(){
+    document.getElementById('ovTallas').classList.add('on');
+    document.getElementById('buscaTalla').value='';
+    pintaListaTallas();
   }
-  function corridaCompleta(){
-    (GRUPOS[grupoActivo]||[]).forEach(t=>tallasSel.add(t));
-    pintaGrupos();pintaTallas();cuentaVariantes();
+  function cierraTallas(){
+    document.getElementById('ovTallas').classList.remove('on');
+    pintaTallaFrec();pintaTallasSel();cuentaVariantes();
   }
-  function limpiaGrupo(){
-    (GRUPOS[grupoActivo]||[]).forEach(t=>tallasSel.delete(t));
-    pintaGrupos();pintaTallas();cuentaVariantes();
+  function pintaListaTallas(){
+    const q=document.getElementById('buscaTalla').value.toLowerCase();
+    const cont=document.getElementById('listaTallas');
+    cont.innerHTML='';
+    ORDEN_G.filter(g=>GRUPOS[g]).forEach(g=>{
+      const tallas=GRUPOS[g].filter(t=>t.toLowerCase().includes(q));
+      if(!tallas.length)return;
+      const h=document.createElement('div');
+      h.className='grupo-talla-h';
+      const faltan=tallas.some(t=>!tallasSel.has(t));
+      h.innerHTML='<span>'+g+'</span>';
+      const b=document.createElement('button');
+      b.textContent=faltan?'⚡ Toda la corrida':'✕ Quitar todas';
+      b.onclick=()=>{
+        tallas.forEach(t=>faltan?tallasSel.add(t):tallasSel.delete(t));
+        pintaListaTallas();pintaTallaFrec();pintaTallasSel();cuentaVariantes();
+      };
+      h.appendChild(b);
+      cont.appendChild(h);
+      const zona=document.createElement('div');
+      zona.className='chips';
+      tallas.forEach(t=>zona.appendChild(chipTalla(t,()=>toggleTalla(t))));
+      cont.appendChild(zona);
+    });
+    document.getElementById('btnTallasListo').textContent=
+      tallasSel.size?'Listo ('+tallasSel.size+' talla'+(tallasSel.size>1?'s':'')+')':'Listo';
   }
   function toggleTallas(){
     const sw=document.getElementById('swTallas');
     sw.classList.toggle('on');
     document.getElementById('zonaTallas').style.display=sw.classList.contains('on')?'block':'none';
-    if(sw.classList.contains('on')){pintaGrupos();pintaTallas();pintaColorFrec();pintaColoresSel();}
+    if(sw.classList.contains('on')){pintaTallaFrec();pintaTallasSel();pintaColorFrec();pintaColoresSel();}
     cuentaVariantes();
   }
 
@@ -923,7 +948,7 @@
     document.getElementById('inMarca').value='';
     tallasSel.clear();coloresSel.clear();
     if(document.getElementById('swTallas').classList.contains('on')){
-      pintaGrupos();pintaTallas();pintaColorFrec();pintaColoresSel();cuentaVariantes();
+      pintaTallaFrec();pintaTallasSel();pintaColorFrec();pintaColoresSel();cuentaVariantes();
     }
     document.getElementById('cajaMargen').style.display='none';
     ['fotoProv','fotoDel','fotoTra'].forEach(id=>{
