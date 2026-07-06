@@ -48,7 +48,7 @@ Validaciones servidor: SKU único, 4 precios > 0, margen negativo → advertenci
 
 Pantalla "Alta de productos" replicando el mockup:
 - Bloques: 📷 Fotos (3 slots con cámara) → 🏷️ Datos básicos → 💲 Precios (margen por lista en vivo) → 📏 Tallas y variantes → 🛒 POS/inventario.
-- Tallas y colores **desde la API en vivo** (no hardcodear): endpoint que devuelva atributos + valores + frecuencia de uso; patrón frecuentes + hoja con buscador; orden de tallas: letras XS→XS/S→S→S/M→M→M/L→L→L/XL→XL→XXL→1X–4X, números ascendentes, grupos de corrida (Junior impares, Letras, Pares, Pants 28–40, Unitalla) con "toda la corrida".
+- Tallas y colores **desde la API en vivo** (no hardcodear): endpoint que devuelva atributos + valores + frecuencia de uso; patrón frecuentes + hoja con buscador; orden de tallas: letras XS→XS/S→S→S/M→M→M/L→L→L/XL→XL→XXL, números ascendentes, 1X–4X al final de los números; grupos de corrida validados contra el uso real en Odoo: **Dama 1–15** (impares), **Blusas (letras)** XS–XXL y combinadas, **Extras** (16–24, 17/19 y 1X–4X), **Pants 28–40**, **Pares 0–14**, **Unitalla** — cada uno con "toda la corrida".
 - Resumen antes de confirmar + pantalla de éxito con "dar de alta otro".
 - Acceso solo para perfiles autorizados (Aaron/admin y encargado de inventario), mismo esquema de PIN/roles actual.
 - Bump del service worker al desplegar.
