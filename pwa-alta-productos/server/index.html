@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Alta de producto — YOOHOO</title>
+<style>
+  :root{--azul:#1e3a8a;--azul-claro:#3b82f6;--acento:#f59e0b;--oscuro:#0f172a;--gris:#475569;
+    --claro:#f1f5f9;--blanco:#fff;--verde:#16a34a;--rojo:#dc2626;--borde:#e2e8f0;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f6f7fb;color:var(--oscuro);}
+  .app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+  .hd{background:linear-gradient(135deg,var(--azul),var(--azul-claro));color:#fff;padding:16px 18px;
+    position:sticky;top:0;z-index:10;}
+  .hd .t{font-size:18px;font-weight:800;} .hd .s{font-size:12px;opacity:.85;}
+  .scroll{flex:1;padding:14px 14px 110px;}
+  .bloque{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(15,23,42,.05);}
+  .bloque h4{font-size:12px;letter-spacing:.7px;color:var(--azul);text-transform:uppercase;margin-bottom:10px;font-weight:800;}
+  .campo{margin-bottom:10px;} .campo:last-child{margin-bottom:0;}
+  label{display:block;font-size:12.5px;font-weight:700;margin-bottom:4px;}
+  label .req{color:var(--rojo);} label .opt{color:#94a3b8;font-weight:600;font-size:11px;}
+  input,select{width:100%;padding:11px 12px;font-size:16px;border:1.5px solid var(--borde);border-radius:10px;
+    background:#fbfcfe;outline:none;font-family:inherit;color:var(--oscuro);}
+  input:focus,select:focus{border-color:var(--azul-claro);background:#fff;}
+  .campo.err input,.campo.err select{border-color:var(--rojo);background:#fef2f2;}
+  .ayuda{font-size:11px;color:#94a3b8;margin-top:3px;} .fila{display:flex;gap:10px;} .fila .campo{flex:1;}
+  .fotos{display:flex;gap:9px;} .fslot{flex:1;text-align:center;}
+  .fcuadro{width:100%;aspect-ratio:1;border-radius:14px;border:2px dashed #cbd5e1;background:#f8fafc;
+    display:flex;align-items:center;justify-content:center;font-size:24px;color:#94a3b8;overflow:hidden;position:relative;cursor:pointer;}
+  .fcuadro img{width:100%;height:100%;object-fit:cover;} .fcuadro.ok{border-style:solid;border-color:var(--verde);}
+  .fl{font-size:10px;font-weight:800;color:var(--gris);margin-top:5px;text-transform:uppercase;}
+  .fl em{display:block;font-style:normal;font-weight:600;color:#94a3b8;font-size:9px;text-transform:none;}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .ch{padding:8px 13px;border-radius:999px;border:1.5px solid var(--borde);background:#fff;font-size:13px;
+    font-weight:700;color:var(--gris);cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .ch.on{background:var(--azul);border-color:var(--azul);color:#fff;}
+  .swc{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.18);}
+  .btn-todos{width:100%;margin-top:9px;padding:10px;border-radius:10px;font-size:13px;font-weight:800;
+    border:1.5px dashed #94a3b8;background:#f8fafc;color:var(--gris);font-family:inherit;}
+  .sw{width:46px;height:26px;border-radius:999px;background:#cbd5e1;position:relative;flex-shrink:0;transition:.15s;}
+  .sw::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.15s;box-shadow:0 1px 4px rgba(0,0,0,.25);}
+  .sw.on{background:var(--verde);} .sw.on::after{left:23px;}
+  .swf{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .swf .x b{display:block;font-size:13px;} .swf .x span{font-size:11px;color:#94a3b8;}
+  .margen{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:8px 12px;font-size:12px;
+    color:#166534;font-weight:700;margin-top:8px;} .margen.neg{background:#fef2f2;border-color:#fecaca;color:var(--rojo);}
+  .resvar{margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:9px 12px;font-size:12px;color:#1d4ed8;font-weight:700;}
+  .pie{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;padding:12px 14px 18px;
+    background:linear-gradient(0deg,#f6f7fb 70%,transparent);}
+  .guardar{width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--verde),#15803d);
+    color:#fff;font-size:16px;font-weight:800;box-shadow:0 8px 20px rgba(22,163,74,.35);font-family:inherit;}
+  .guardar:disabled{opacity:.6;}
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:30;padding:20px;}
+  .overlay.on{display:flex;} .card{background:#fff;border-radius:18px;padding:24px;max-width:400px;width:100%;text-align:center;}
+  .card .ic{width:56px;height:56px;border-radius:50%;background:#dcfce7;color:var(--verde);font-size:30px;
+    display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+  .card.e .ic{background:#fee2e2;color:var(--rojo);} .card h3{font-size:18px;margin-bottom:6px;}
+  .card p{font-size:13px;color:var(--gris);margin-bottom:16px;} .card button{width:100%;padding:13px;border-radius:12px;
+    font-size:15px;font-weight:800;border:none;background:var(--azul);color:#fff;font-family:inherit;}
+  .toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--oscuro);color:#fff;
+    padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;z-index:40;display:none;}
+  .sheet{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:flex-end;z-index:35;}
+  .sheet.on{display:flex;} .sheet .in{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;margin:0 auto;padding:18px;max-height:80vh;overflow-y:auto;}
+  .sheet input{margin-bottom:10px;} .grupo{font-size:11px;font-weight:800;color:var(--azul);text-transform:uppercase;margin:12px 0 7px;display:flex;justify-content:space-between;align-items:center;}
+  .grupo button{font-size:11px;font-weight:800;border:1.5px solid var(--borde);background:#fbfcfe;color:var(--azul);border-radius:999px;padding:3px 10px;font-family:inherit;}
+  .cargando{text-align:center;color:#94a3b8;font-size:13px;padding:20px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hd"><div class="t">Nuevo producto</div><div class="s">YOOHOO Store · Alta rápida</div></div>
+  <div class="scroll" id="scroll">
+    <div class="bloque">
+      <h4>📷 Fotos del producto</h4>
+      <div class="fotos">
+        <div class="fslot"><div class="fcuadro" id="f_prov" onclick="pick('prov')">＋</div><div class="fl">Proveedor<em>opcional</em></div></div>
+        <div class="fslot"><div class="fcuadro" id="f_del" onclick="pick('del')">＋</div><div class="fl">Delantero<em>producto</em></div></div>
+        <div class="fslot"><div class="fcuadro" id="f_tra" onclick="pick('tra')">＋</div><div class="fl">Trasero<em>producto</em></div></div>
+      </div>
+      <input type="file" id="filein" accept="image/*" capture="environment" style="display:none">
+    </div>
+
+    <div class="bloque">
+      <h4>🏷️ Datos básicos</h4>
+      <div class="campo" id="c_nombre"><label>Nombre <span class="req">*</span></label>
+        <input id="nombre" placeholder="Ej. Blusa manga larga rayas"></div>
+      <div class="campo" id="c_cat"><label>Categoría <span class="req">*</span></label>
+        <input id="categoria" list="cats" placeholder="Ej. Blusas"><datalist id="cats"></datalist>
+        <div class="ayuda">Llena las 3 categorías de Odoo (POS, eCommerce y General)</div></div>
+      <div class="campo"><label>SKU <span class="opt">· referencia interna</span></label><input id="sku" placeholder="Ej. BLU-123"></div>
+      <div class="campo"><label>Marca <span class="opt">· opcional</span></label>
+        <input id="marca" list="marcas" placeholder="Ej. YOO HOO"><datalist id="marcas"></datalist></div>
+    </div>
+
+    <div class="bloque">
+      <h4>💲 Precios</h4>
+      <div class="campo" id="c_costo"><label>Costo <span class="req">*</span></label>
+        <input id="costo" type="number" inputmode="decimal" placeholder="0.00" oninput="margen()"></div>
+      <label style="margin:10px 0 6px">Precio de venta por lista <span class="req">*</span></label>
+      <div class="fila">
+        <div class="campo" id="c_paquete"><label style="font-weight:600;color:var(--gris)">Paquete</label><input id="paquete" type="number" inputmode="decimal" placeholder="0.00" oninput="margen()"></div>
+        <div class="campo" id="c_corrida"><label style="font-weight:600;color:var(--gris)">Corrida</label><input id="corrida" type="number" inputmode="decimal" placeholder="0.00" oninput="margen()"></div>
+      </div>
+      <div class="fila">
+        <div class="campo" id="c_mayoreo"><label style="font-weight:600;color:var(--gris)">Mayoreo</label><input id="mayoreo" type="number" inputmode="decimal" placeholder="0.00" oninput="margen()"></div>
+        <div class="campo" id="c_menudeo"><label style="font-weight:600;color:var(--gris)">Menudeo</label><input id="menudeo" type="number" inputmode="decimal" placeholder="0.00" oninput="margen()"></div>
+      </div>
+      <div class="margen" id="mcaja" style="display:none"><span id="mtxt"></span></div>
+    </div>
+
+    <div class="bloque">
+      <h4>📏 Tallas y variantes</h4>
+      <div class="swf" style="margin-bottom:10px"><div class="x"><b>¿Maneja tallas?</b><span>Odoo crea una variante por talla</span></div>
+        <div class="sw" id="swT" onclick="togT()"></div></div>
+      <div id="zonaT" style="display:none">
+        <label>Tallas más usadas</label><div class="chips" id="tfrec"></div>
+        <button class="btn-todos" onclick="openSheet('t')">📏 Buscar en todas las tallas…</button>
+        <div class="chips" id="tsel" style="margin-top:9px"></div>
+        <div class="campo" style="margin-top:14px"><label>Colores <span class="opt">· opcional</span></label>
+          <div class="chips" id="cfrec"></div>
+          <button class="btn-todos" onclick="openSheet('c')">🎨 Buscar en todos los colores…</button>
+          <div class="chips" id="csel" style="margin-top:9px"></div></div>
+        <div class="resvar" id="resvar" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="bloque">
+      <h4>🛒 Punto de venta e inventario</h4>
+      <div class="swf" style="margin-bottom:12px"><div class="x"><b>Disponible en POS</b><span>Aparece en la caja</span></div>
+        <div class="sw on" id="swP" onclick="this.classList.toggle('on')"></div></div>
+      <div class="campo"><label>Cantidad inicial <span class="opt">· opcional</span></label>
+        <input id="cant" type="number" inputmode="numeric" placeholder="0"></div>
+    </div>
+  </div>
+  <div class="pie"><button class="guardar" id="btnG" onclick="guardar()">✓ Guardar producto</button></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="sheet" id="sheet"><div class="in">
+  <h3 id="sheetTit" style="margin-bottom:10px"></h3>
+  <input id="sheetBusca" placeholder="Buscar…" oninput="renderSheet()">
+  <div id="sheetList"></div>
+  <button class="btn-todos" style="border-style:solid;background:var(--azul);color:#fff;margin-top:6px" onclick="closeSheet()">Listo</button>
+</div></div>
+<div class="overlay" id="ov"><div class="card" id="ovCard">
+  <div class="ic" id="ovIc">✓</div><h3 id="ovT"></h3><p id="ovP"></p>
+  <button id="ovB" onclick="ovAction()"></button>
+</div></div>
+
+<script>
+const API = "";  // mismo origen
+let ATTR = {tallas_grupos:[], colores:[]};
+let TFREC = [], CFREC = [];
+const fotos = {prov:null, del:null, tra:null};
+const tSel = new Set(), cSel = new Set();
+let sheetMode = null;
+
+const $ = id => document.getElementById(id);
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",2200);}
+
+// --- cargar atributos en vivo ---
+async function cargar(){
+  try{
+    const r = await fetch(API+"/api/product-attributes");
+    ATTR = await r.json();
+    // frecuentes = primeras de cada lista (el server ya las ordena)
+    const todasT = ATTR.tallas_grupos.flatMap(g=>g.tallas);
+    TFREC = ["S","M","L","1","3","5","7","9","11","13"].filter(t=>todasT.includes(t)).slice(0,10);
+    if(TFREC.length<6) TFREC = todasT.slice(0,10);
+    CFREC = (ATTR.colores.slice(0,10)).map(c=>c.nombre);
+    // categorias/marcas para datalist las llenamos con lo que haya (se completan al escribir)
+    renderTFrec(); renderCFrec();
+  }catch(e){ toast("No se pudieron cargar tallas/colores"); }
+}
+function hex(nombre){const c=ATTR.colores.find(x=>x.nombre===nombre);return (c&&c.hex)||"#d1d5db";}
+
+// --- fotos con compresión ---
+let pickTarget=null;
+function pick(t){pickTarget=t;$("filein").click();}
+$("filein").addEventListener("change", async e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const b64 = await comprimir(file, 1400, .82);
+  fotos[pickTarget]=b64;
+  const box=$("f_"+pickTarget); box.classList.add("ok");
+  box.innerHTML='<img src="data:image/jpeg;base64,'+b64+'">';
+  e.target.value="";
+});
+function comprimir(file, max, q){
+  return new Promise(res=>{
+    const img=new Image(), rd=new FileReader();
+    rd.onload=()=>{img.onload=()=>{
+      let {width:w,height:h}=img; if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}
+      const cv=document.createElement("canvas");cv.width=w;cv.height=h;
+      cv.getContext("2d").drawImage(img,0,0,w,h);
+      res(cv.toDataURL("image/jpeg",q).split(",")[1]);
+    };img.src=rd.result;};
+    rd.readAsDataURL(file);
+  });
+}
+
+// --- margen por lista ---
+const LISTAS=[["paquete","PAQ"],["corrida","CORR"],["mayoreo","MAY"],["menudeo","MEN"]];
+function margen(){
+  const co=parseFloat($("costo").value), caja=$("mcaja"); let partes=[],neg=false;
+  if(isNaN(co)){caja.style.display="none";return;}
+  LISTAS.forEach(([id,et])=>{const p=parseFloat($(id).value);if(isNaN(p)||p<=0)return;
+    const m=(p-co)/p*100; if(m<0)neg=true; partes.push(et+" "+m.toFixed(0)+"%");});
+  if(!partes.length){caja.style.display="none";return;}
+  caja.style.display="block"; caja.classList.toggle("neg",neg);
+  $("mtxt").textContent=(neg?"⚠️ ":"")+"Margen · "+partes.join(" · ");
+}
+
+// --- tallas / colores ---
+function togT(){const s=$("swT");s.classList.toggle("on");
+  $("zonaT").style.display=s.classList.contains("on")?"block":"none";resVar();}
+function chip(txt,on,cb,swatch){const d=document.createElement("div");d.className="ch"+(on?" on":"");
+  d.innerHTML=(swatch?'<span class="swc" style="background:'+hex(txt)+'"></span>':"")+txt;d.onclick=cb;return d;}
+function renderTFrec(){const c=$("tfrec");c.innerHTML="";TFREC.forEach(t=>c.appendChild(chip(t,tSel.has(t),()=>togVal(tSel,t,renderTFrec,renderTSel))));}
+function renderTSel(){const c=$("tsel");c.innerHTML="";[...tSel].filter(t=>!TFREC.includes(t)).forEach(t=>{const d=chip(t,true,()=>togVal(tSel,t,renderTFrec,renderTSel));d.innerHTML+=' ✕';c.appendChild(d);});resVar();}
+function renderCFrec(){const c=$("cfrec");c.innerHTML="";CFREC.forEach(n=>c.appendChild(chip(n,cSel.has(n),()=>togVal(cSel,n,renderCFrec,renderCSel),true)));}
+function renderCSel(){const c=$("csel");c.innerHTML="";[...cSel].filter(n=>!CFREC.includes(n)).forEach(n=>{const d=chip(n,true,()=>togVal(cSel,n,renderCFrec,renderCSel),true);d.innerHTML+=' ✕';c.appendChild(d);});resVar();}
+function togVal(set,v,r1,r2){set.has(v)?set.delete(v):set.add(v);r1();r2();if(sheetMode)renderSheet();}
+function resVar(){const r=$("resvar");if(!$("swT").classList.contains("on")||!tSel.size){r.style.display="none";return;}
+  const n=tSel.size*(cSel.size||1);r.style.display="block";
+  r.textContent="🧩 Se crearán "+n+" variante"+(n>1?"s":"")+" ("+tSel.size+" talla"+(tSel.size>1?"s":"")+(cSel.size?" × "+cSel.size+" color"+(cSel.size>1?"es":""):"")+")";}
+
+// --- sheet buscador ---
+function openSheet(m){sheetMode=m;$("sheet").classList.add("on");$("sheetBusca").value="";
+  $("sheetTit").textContent=m==="t"?"📏 Tallas del catálogo":"🎨 Colores del catálogo";renderSheet();}
+function closeSheet(){$("sheet").classList.remove("on");sheetMode=null;}
+function renderSheet(){const q=$("sheetBusca").value.toLowerCase(),L=$("sheetList");L.innerHTML="";
+  if(sheetMode==="t"){
+    ATTR.tallas_grupos.forEach(g=>{const ts=g.tallas.filter(t=>t.toLowerCase().includes(q));if(!ts.length)return;
+      const h=document.createElement("div");h.className="grupo";const falta=ts.some(t=>!tSel.has(t));
+      h.innerHTML="<span>"+g.grupo+"</span>";const b=document.createElement("button");
+      b.textContent=falta?"⚡ Toda":"✕ Quitar";b.onclick=()=>{ts.forEach(t=>falta?tSel.add(t):tSel.delete(t));renderSheet();renderTFrec();renderTSel();};
+      h.appendChild(b);L.appendChild(h);const z=document.createElement("div");z.className="chips";
+      ts.forEach(t=>z.appendChild(chip(t,tSel.has(t),()=>togVal(tSel,t,renderTFrec,renderTSel))));L.appendChild(z);});
+  }else{
+    const z=document.createElement("div");z.className="chips";
+    ATTR.colores.filter(c=>c.nombre.toLowerCase().includes(q)).forEach(c=>
+      z.appendChild(chip(c.nombre,cSel.has(c.nombre),()=>togVal(cSel,c.nombre,renderCFrec,renderCSel),true)));
+    L.appendChild(z);
+  }}
+
+// --- guardar ---
+function err(id,bad){$(id).classList.toggle("err",bad);return bad;}
+async function guardar(){
+  let primero=null;
+  const oblig=[["c_nombre","nombre"],["c_cat","categoria"],["c_costo","costo"],
+    ["c_paquete","paquete"],["c_corrida","corrida"],["c_mayoreo","mayoreo"],["c_menudeo","menudeo"]];
+  oblig.forEach(([c,i])=>{const bad=!$(i).value.trim();if(err(c,bad)&&!primero)primero=$(c);});
+  if(primero){primero.scrollIntoView({behavior:"smooth",block:"center"});return;}
+  const spec={
+    nombre:$("nombre").value.trim(), categoria:$("categoria").value.trim(), sku:$("sku").value.trim()||null,
+    marca:$("marca").value.trim()||null, costo:parseFloat($("costo").value),
+    precios:{paquete:+$("paquete").value,corrida:+$("corrida").value,mayoreo:+$("mayoreo").value,menudeo:+$("menudeo").value},
+    pos:$("swP").classList.contains("on"),
+    tallas:$("swT").classList.contains("on")?[...tSel]:[], colores:$("swT").classList.contains("on")?[...cSel]:[],
+    cantidad_inicial:parseInt($("cant").value)||0,
+  };
+  if(fotos.del) spec.foto_delantera=fotos.del;
+  const gal=[]; if(fotos.tra)gal.push({name:"Trasera",data:fotos.tra}); if(fotos.prov)gal.push({name:"Proveedor",data:fotos.prov});
+  if(gal.length) spec.galeria=gal;
+
+  $("btnG").disabled=true; $("btnG").textContent="Guardando…";
+  try{
+    const r=await fetch(API+"/api/products",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(spec)});
+    const d=await r.json();
+    if(d.ok) showOverlay(true, spec, d); else showOverlay(false, spec, d);
+  }catch(e){ showOverlay(false, spec, {error:e.message}); }
+  $("btnG").disabled=false; $("btnG").textContent="✓ Guardar producto";
+}
+function showOverlay(ok, spec, d){
+  const card=$("ovCard");card.classList.toggle("e",!ok);
+  $("ovIc").textContent=ok?"✓":"!";
+  $("ovT").textContent=ok?"Producto creado":"No se pudo crear";
+  $("ovP").textContent=ok?(spec.nombre+" — "+ (d.variant_ids?d.variant_ids.length:1)+" variante(s) en Odoo"):("Error: "+(d.error||"desconocido")+(d.faltan?" ("+d.faltan.join(", ")+")":""));
+  $("ovB").textContent=ok?"＋ Dar de alta otro":"Reintentar";
+  $("ov").dataset.ok=ok?"1":"0"; $("ov").classList.add("on");
+}
+function ovAction(){$("ov").classList.remove("on");
+  if($("ov").dataset.ok==="1"){
+    ["nombre","categoria","sku","marca","costo","paquete","corrida","mayoreo","menudeo","cant"].forEach(i=>$(i).value="");
+    tSel.clear();cSel.clear();Object.keys(fotos).forEach(k=>{fotos[k]=null;const b=$("f_"+k);b.classList.remove("ok");b.innerHTML="＋";});
+    renderTFrec();renderTSel();renderCFrec();renderCSel();$("mcaja").style.display="none";
+    $("scroll").scrollTo({top:0,behavior:"smooth"});
+  }}
+cargar();
+</script>
+</body>
+</html>
