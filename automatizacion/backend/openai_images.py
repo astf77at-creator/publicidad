@@ -41,6 +41,7 @@ def generate_pose(reference_images: list[bytes], prompt: str) -> bytes:
         image=files,
         prompt=prompt,
         size="1024x1536",
+        quality=settings.openai_image_quality,   # "high" = más fotorrealista
         n=1,
     )
     return base64.b64decode(result.data[0].b64_json)

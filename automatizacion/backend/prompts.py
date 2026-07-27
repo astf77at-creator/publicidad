@@ -4,6 +4,17 @@ Resumen de prompts-fotografia.md adaptado a la API: una pose por imagen.
 La prenda es la protagonista (70-80% del encuadre); el rostro es secundario.
 """
 
+# Fotorrealismo: es lo PRIMERO y más importante. Sin esto, gpt-image-1 tiende
+# a producir resultados con aspecto de ilustración/dibujo.
+REALISMO = (
+    "FOTOGRAFÍA REAL, HIPERREALISTA y de alta resolución, tomada con cámara "
+    "profesional full-frame (estilo DSLR, lente 50mm, f/2.8), con textura real de "
+    "piel, cabello y tela, poros, hilos y costuras visibles, iluminación de estudio "
+    "suave y profundidad de campo natural. Debe parecer una FOTO de catálogo real. "
+    "PROHIBIDO que parezca ilustración, dibujo, render 3D, CGI, pintura, cómic o "
+    "cualquier estilo artístico: solo fotografía realista."
+)
+
 REGLA_MAESTRA = (
     "La prenda es la protagonista y debe ocupar el 70-80% del encuadre. "
     "Acerca el plano y recorta lo necesario para que la prenda llene el cuadro. "
@@ -132,8 +143,9 @@ def build_prompt(tipo: str, descripcion: str, pose: str, anchor: bool = False) -
     cfg = TIPOS.get(tipo, TIPOS["completo"])
     extra = (" " + ANCLA) if anchor else ""
     return (
+        f"Genera UNA FOTOGRAFÍA hiperrealista de catálogo de moda en esta pose: "
+        f"{pose}. {REALISMO} "
         f"Usa la imagen subida ÚNICAMENTE como referencia de la prenda: {descripcion}. "
-        f"Genera UNA imagen en esta pose: {pose}. "
         f"Reproduce la prenda con fidelidad total en color, patrón, textura, proporción "
         f"y detalles. {cfg['encuadre']} {REGLA_MAESTRA} {CONSISTENCIA} {DECORO}{extra}"
     )

@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str = ""
     openai_image_model: str = "gpt-image-1"
+    # Calidad de generación: low | medium | high | auto. "high" = más fotorrealista.
+    openai_image_quality: str = "high"
     poses_por_producto: int = 6
 
     # Cola de trabajos: cuántas generaciones se procesan EN PARALELO. Súbelo
