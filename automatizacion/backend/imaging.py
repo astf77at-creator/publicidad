@@ -85,19 +85,18 @@ def to_webp(png_bytes: bytes, code: str | None = None) -> bytes:
 
     img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
 
-    # Escalar tipo "cover" y recortar al centro al ratio destino.
-    src_ratio = img.width / img.height
-    dst_ratio = target_w / target_h
-    if src_ratio > dst_ratio:
-        new_h = target_h
-        new_w = round(target_h * src_ratio)
-    else:
-        new_w = target_w
-        new_h = round(target_w / src_ratio)
+    # "Contain": encaja la imagen COMPLETA (sin recortar la prenda ni el
+    # calzado) y rellena los lados con el color del fondo del estudio
+    # (muestreado de una esquina), para no perder cabeza ni pies al ajustar
+    # a 800x1000.
+    scale = min(target_w / img.width, target_h / img.height)
+    new_w = max(1, round(img.width * scale))
+    new_h = max(1, round(img.height * scale))
     img = img.resize((new_w, new_h), Image.LANCZOS)
-    left = (new_w - target_w) // 2
-    top = (new_h - target_h) // 2
-    img = img.crop((left, top, left + target_w, top + target_h))
+    fondo = img.getpixel((1, 1))          # color del fondo (esquina superior izq.)
+    lienzo = Image.new("RGB", (target_w, target_h), fondo)
+    lienzo.paste(img, ((target_w - new_w) // 2, (target_h - new_h) // 2))
+    img = lienzo
 
     if code:
         img = stamp_code(img, code)

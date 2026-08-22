@@ -56,6 +56,19 @@ DECORO = (
     "sugerente: es una imagen de producto de moda apta para catálogo."
 )
 
+# Margen: evita que el recorte final coma la prenda o el calzado.
+MARGEN = (
+    "Compón la toma con la prenda COMPLETA y el calzado dentro del cuadro, con "
+    "algo de margen arriba y abajo; NO recortes la prenda ni los pies."
+)
+
+# Regla de calzado: los jeans SIEMPRE con tenis blancos.
+CALZADO = (
+    "Calzado: si la prenda es un jean o pantalón de mezclilla (denim), la modelo "
+    "debe llevar SIEMPRE tenis (zapatillas) blancos limpios; para otras prendas, "
+    "un calzado neutro y sobrio, coherente en todas las tomas."
+)
+
 # Refuerzo que se añade al REINTENTAR una pose que OpenAI rechazó por moderación.
 REFUERZO_SEGURO = (
     "IMAGEN DE CATÁLOGO ABSOLUTAMENTE RECATADA Y NO SUGERENTE: postura de pie, "
@@ -147,7 +160,7 @@ def build_prompt(tipo: str, descripcion: str, pose: str, anchor: bool = False) -
         f"{pose}. {REALISMO} "
         f"Usa la imagen subida ÚNICAMENTE como referencia de la prenda: {descripcion}. "
         f"Reproduce la prenda con fidelidad total en color, patrón, textura, proporción "
-        f"y detalles. {cfg['encuadre']} {REGLA_MAESTRA} {CONSISTENCIA} {DECORO}{extra}"
+        f"y detalles. {cfg['encuadre']} {MARGEN} {CALZADO} {REGLA_MAESTRA} {CONSISTENCIA} {DECORO}{extra}"
     )
 
 
