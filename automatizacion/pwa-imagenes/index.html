@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1e3a8a">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Imágenes web</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <h1>🖼️ Imágenes web</h1>
+    <p class="sub">Sube frente y trasero, elige el producto y genera las imágenes.</p>
+
+    <!-- Aviso cuando falta / no es válido el PIN (entrar desde el lanzador) -->
+    <div id="gate" class="estado error" hidden></div>
+
+    <!-- Productos sin imagen, priorizados por stock (al inicio) -->
+    <button type="button" id="btn-faltantes" class="btn-faltantes" hidden>
+      📋 Ver productos sin imagen
+    </button>
+    <div id="faltantes" class="faltantes" hidden></div>
+
+    <form id="form" hidden>
+      <fieldset>
+        <legend>1 · Fotos del producto</legend>
+        <div class="fotos">
+          <label class="foto">
+            <span>Frente *</span>
+            <input type="file" id="frente" accept="image/*" required>
+            <img class="preview" id="prev-frente" alt="">
+          </label>
+          <label class="foto">
+            <span>Trasero *</span>
+            <input type="file" id="trasero" accept="image/*" required>
+            <img class="preview" id="prev-trasero" alt="">
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>2 · Producto (desde Odoo)</legend>
+        <label>Tipo de prenda
+          <select id="tipo" required></select>
+        </label>
+        <label>Referencia (SKU)
+          <div class="ref-row">
+            <input type="text" id="referencia" placeholder="Escribe o pega la referencia…"
+                   autocomplete="off" autocapitalize="off" spellcheck="false"
+                   list="ref-sugerencias" required>
+            <button type="button" id="verificar">Verificar</button>
+          </div>
+          <datalist id="ref-sugerencias"></datalist>
+        </label>
+        <div id="ref-estado" class="ref-estado" hidden></div>
+        <label id="color-wrap" hidden>Color
+          <select id="color" required></select>
+        </label>
+      </fieldset>
+
+      <button type="submit" id="enviar" disabled>➕ Añadir a la cola</button>
+    </form>
+
+    <div id="estado" class="estado" hidden></div>
+
+    <!-- Cola de generación: un trabajo por flujo, con barra de progreso -->
+    <section id="cola" class="cola" hidden>
+      <div class="cola-head" id="cola-head">Cola de generación</div>
+      <div class="cola-lista" id="cola-lista"></div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
